@@ -397,77 +397,39 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--tx);overflow:h
     </div>
   </div>
 
+  <!-- ── TECH SETTINGS (PIN change only) ── -->
   <div class="page" id="pg-settings">
-    <div class="scroll" style="flex:1">
-      <div style="padding:14px 14px 0">
-        <div class="info-b">⚙️ All settings saved on this device. Set van regos and manager password here.</div>
-      </div>
+    <div class="scroll" style="flex:1" id="settings-scroll">
+      <!-- content injected by renderSettings() -->
+    </div>
+  </div>
 
-      <div class="cfg-sec">
-        <div class="cfg-title">Manager Password</div>
+  <!-- ── MANAGER: VAN RESTOCK ── -->
+  <div class="page" id="pg-restock">
+    <div class="scroll" style="flex:1;padding:14px">
+      <div class="info-b">📦 Record stock transferred from the workshop to a van. This updates the van's current quantity in the spreadsheet.</div>
+      <div class="cfg-sec" style="padding-top:8px">
+        <div class="cfg-title">Select Van to Restock</div>
         <div class="cfg-card">
-          <label>New Password</label>
-          <input type="password" id="c-pw" placeholder="Enter new password">
-          <div class="cfg-note">Leave blank to keep current password. Default on first install: <strong>simplicity</strong></div>
+          <select id="restock-van-sel" onchange="loadRestockItems()"></select>
         </div>
       </div>
+      <div id="restock-items" style="margin-top:4px"></div>
+      <div style="height:20px"></div>
+    </div>
+  </div>
 
-      <div class="cfg-sec">
-        <div class="cfg-title">Van Fleet — Registration Numbers</div>
+  <!-- ── MANAGER: STOCK LEVELS ── -->
+  <div class="page" id="pg-levels">
+    <div class="scroll" style="flex:1;padding:14px">
+      <div class="info-b">🎚 Adjust minimum reorder quantities per van. Changes update your Google Sheet immediately.</div>
+      <div class="cfg-sec" style="padding-top:8px">
+        <div class="cfg-title">Select Van</div>
         <div class="cfg-card">
-          <div class="van-cfg-grid">
-            <div><label>Van 1 Rego</label><input type="text" id="c-v1" placeholder="1ABC 234" style="text-transform:uppercase"></div>
-            <div><label>Van 2 Rego</label><input type="text" id="c-v2" placeholder="2XYZ 567" style="text-transform:uppercase"></div>
-            <div style="margin-top:8px"><label>Van 3 Rego</label><input type="text" id="c-v3" placeholder="3DEF 890" style="text-transform:uppercase"></div>
-            <div style="margin-top:8px"><label>Van 4 Rego</label><input type="text" id="c-v4" placeholder="4GHI 123" style="text-transform:uppercase"></div>
-          </div>
-          <div class="cfg-note">Regos appear in the van selector at login and in all usage log entries.</div>
+          <select id="levels-van-sel" onchange="loadLevelItems()"></select>
         </div>
       </div>
-
-      <div class="cfg-sec">
-        <div class="cfg-title">Registered Technicians</div>
-        <div class="cfg-card">
-          <div class="cfg-note" style="margin-bottom:8px">Techs register their own PIN on first login. You can remove a tech here to reset their PIN.</div>
-          <div class="tech-list" id="tech-list"></div>
-        </div>
-      </div>
-
-      <div class="cfg-sec">
-        <div class="cfg-title">Google Sheets</div>
-        <div class="cfg-card">
-          <label>Spreadsheet ID</label>
-          <input type="text" id="c-sid" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms">
-          <div class="cfg-note">From your Sheet URL: docs.google.com/spreadsheets/d/<strong>[ID]</strong>/edit</div>
-        </div>
-        <div class="cfg-card">
-          <label>API Key (read)</label>
-          <input type="text" id="c-akey" placeholder="AIzaSy…">
-        </div>
-        <div class="cfg-card">
-          <label>Apps Script URL (write)</label>
-          <input type="text" id="c-scr" placeholder="https://script.google.com/macros/s/…/exec">
-          <div class="cfg-note">Deploy google-apps-script.js as a Web App. Paste URL here to enable stock writes.</div>
-        </div>
-      </div>
-
-      <div class="cfg-sec">
-        <div class="cfg-title">ServiceM8</div>
-        <div class="cfg-card">
-          <label>API Key</label>
-          <input type="text" id="c-sm8" placeholder="your-servicem8-api-key">
-          <div class="cfg-note">ServiceM8 → Settings → Integrations → API Keys → Create New Key.</div>
-        </div>
-      </div>
-
-      <button class="btn-save" onclick="saveCfg()">Save All Settings</button>
-
-      <div class="cfg-sec"><div class="cfg-title">Setup guide</div></div>
-      <div class="setup-step"><div class="sn">1</div><div class="st">Set manager password & van regos</div><div class="sb">Open Settings as manager. Set a secure password and enter all 4 van registration plates. Save.</div></div>
-      <div class="setup-step"><div class="sn">2</div><div class="st">Techs create their PIN on first use</div><div class="sb">Each technician opens the app, selects their role, picks their van, enters their name, then creates a 4-digit PIN. The PIN is stored securely on their device only.</div></div>
-      <div class="setup-step"><div class="sn">3</div><div class="st">Import spreadsheet to Google Sheets</div><div class="sb">Upload your Rev3 file. Tab names must match: <code>Master Parts</code>, <code>Van 1 Stock</code>…<code>Van 4 Stock</code>, <code>Usage Log</code>, <code>Reorder Log</code>.</div></div>
-      <div class="setup-step"><div class="sn">4</div><div class="st">Enable Google Sheets API & deploy Apps Script</div><div class="sb">Google Cloud → enable Sheets API → get API key. In the Sheet → Extensions → Apps Script → paste <code>google-apps-script.js</code> → Deploy as Web App → paste URL in Settings.</div></div>
-      <div class="setup-step"><div class="sn">5</div><div class="st">Add to iPhone home screen</div><div class="sb">Safari → Share (□↑) → Add to Home Screen. Android: Chrome → ⋮ → Add to Home Screen.</div></div>
+      <div id="level-items" style="margin-top:4px"></div>
       <div style="height:20px"></div>
     </div>
   </div>
@@ -476,7 +438,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--tx);overflow:h
 
 <nav class="nav" id="nav" style="display:none"></nav>
 
-<!-- Usage sheet -->
+<!-- Usage sheet — smart multi-type -->
 <div class="ov" id="ov" onclick="closeSheet()"></div>
 <div class="bsh" id="bsh">
   <div class="bsh-handle"></div>
@@ -485,16 +447,19 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--tx);overflow:h
     <div class="bsh-sub" id="bs-pn"></div>
   </div>
   <div class="bsh-body">
+    <!-- Stock bar (all types) -->
     <div class="fg">
-      <span class="flabel">Current stock on van</span>
+      <span class="flabel" id="bs-stock-label">Current stock on van</span>
       <div style="display:flex;justify-content:space-between;margin-bottom:5px">
         <span style="font-size:12px;color:var(--tx2)" id="bs-curr"></span>
         <span style="font-size:12px;font-weight:700" id="bs-stat"></span>
       </div>
       <div class="stock-bar"><div class="stock-fill" id="bs-bar" style="width:100%;background:var(--grn)"></div></div>
     </div>
-    <div class="fg">
-      <span class="flabel">Qty used on this job</span>
+
+    <!-- TYPE: ea / kit / sticks — integer stepper (default) -->
+    <div id="ui-ea" class="fg">
+      <span class="flabel" id="lbl-ea">Qty used on this job</span>
       <div class="stepper">
         <button class="sbtn" onclick="stepQ(-1)">−</button>
         <div class="sval" id="qv">1</div>
@@ -502,6 +467,48 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--tx);overflow:h
       </div>
       <div class="sl-txt"><span id="sl-after"></span><span id="sl-max" style="color:var(--tx3)"></span></div>
     </div>
+
+    <!-- TYPE: kg / metres — decimal input with balance tracking -->
+    <div id="ui-measure" class="fg" style="display:none">
+      <span class="flabel" id="lbl-measure">Amount used</span>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input class="fi" type="number" id="measure-input" min="0.1" step="0.1" placeholder="0.0" style="font-size:22px;font-weight:700;font-family:monospace;text-align:center" oninput="updateMeasure()">
+        <span style="font-size:16px;font-weight:600;color:var(--tx2);min-width:28px" id="measure-unit">kg</span>
+      </div>
+      <div style="margin-top:10px">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--tx2);margin-bottom:4px">
+          <span id="measure-remaining">Remaining after use: —</span>
+          <span id="measure-containers" style="color:var(--tx3)"></span>
+        </div>
+        <div class="stock-bar"><div class="stock-fill" id="measure-bar" style="width:100%;background:var(--grn)"></div></div>
+      </div>
+    </div>
+
+    <!-- TYPE: pack / container — qty used + finished toggle -->
+    <div id="ui-pack" class="fg" style="display:none">
+      <span class="flabel" id="lbl-pack">Qty used from pack</span>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input class="fi" type="number" id="pack-input" min="1" step="1" placeholder="e.g. 12" style="font-size:22px;font-weight:700;font-family:monospace;text-align:center">
+        <span style="font-size:13px;color:var(--tx2);min-width:36px" id="pack-unit">pcs</span>
+      </div>
+      <div style="margin-top:14px">
+        <span class="flabel">Pack / container status</span>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
+          <div id="pack-have" onclick="setPackStatus('have')" style="padding:12px 8px;background:var(--surf2);border:2px solid var(--grn);border-radius:var(--rs);text-align:center;cursor:pointer;transition:all .15s;user-select:none">
+            <div style="font-size:18px;margin-bottom:4px">📦</div>
+            <div style="font-size:12px;font-weight:700;color:var(--grn)">Still have stock</div>
+            <div style="font-size:10px;color:var(--tx2);margin-top:2px">Pack not finished</div>
+          </div>
+          <div id="pack-done" onclick="setPackStatus('done')" style="padding:12px 8px;background:var(--surf);border:2px solid var(--surf2);border-radius:var(--rs);text-align:center;cursor:pointer;transition:all .15s;user-select:none">
+            <div style="font-size:18px;margin-bottom:4px">📭</div>
+            <div style="font-size:12px;font-weight:700;color:var(--tx2)">Pack finished</div>
+            <div style="font-size:10px;color:var(--tx3);margin-top:2px">Decrement stock</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ServiceM8 job + notes (all types) -->
     <div class="fg">
       <span class="flabel">ServiceM8 job number</span>
       <input class="fi" type="text" id="sm8-job" placeholder="e.g. JOB-00123" autocomplete="off">
@@ -543,35 +550,25 @@ async function hash(str){
 // ═══════════════════════════════════════════════════════
 function loadCfg(){
   try{A.cfg=JSON.parse(localStorage.getItem('sa_cfg')||'{}')}catch(e){A.cfg={}}
-  document.getElementById('c-v1').value=A.cfg.v1||'';
-  document.getElementById('c-v2').value=A.cfg.v2||'';
-  document.getElementById('c-v3').value=A.cfg.v3||'';
-  document.getElementById('c-v4').value=A.cfg.v4||'';
-  document.getElementById('c-sid').value=A.cfg.sheetId||'';
-  document.getElementById('c-akey').value=A.cfg.apiKey||'';
-  document.getElementById('c-scr').value=A.cfg.scriptUrl||'';
-  document.getElementById('c-sm8').value=A.cfg.sm8Key||'';
+  // Manager fields are only rendered when manager is logged in — populated by renderSettings()
 }
 
 async function saveCfg(){
-  const newPw=document.getElementById('c-pw').value;
-  if(newPw){
-    A.cfg.pwHash=await hash(newPw);
-    document.getElementById('c-pw').value='';
-  }
-  // If no password ever set, use default
+  // Helper to safely read a field that may not exist in tech view
+  const val=id=>{const el=document.getElementById(id);return el?el.value.trim():'';};
+  const newPw=val('c-pw');
+  if(newPw){A.cfg.pwHash=await hash(newPw);const el=document.getElementById('c-pw');if(el)el.value='';}
   if(!A.cfg.pwHash)A.cfg.pwHash=await hash('simplicity');
-  A.cfg.v1=document.getElementById('c-v1').value.trim().toUpperCase();
-  A.cfg.v2=document.getElementById('c-v2').value.trim().toUpperCase();
-  A.cfg.v3=document.getElementById('c-v3').value.trim().toUpperCase();
-  A.cfg.v4=document.getElementById('c-v4').value.trim().toUpperCase();
-  A.cfg.sheetId=document.getElementById('c-sid').value.trim();
-  A.cfg.apiKey=document.getElementById('c-akey').value.trim();
-  A.cfg.scriptUrl=document.getElementById('c-scr').value.trim();
-  A.cfg.sm8Key=document.getElementById('c-sm8').value.trim();
+  if(val('c-v1'))A.cfg.v1=val('c-v1').toUpperCase();
+  if(val('c-v2'))A.cfg.v2=val('c-v2').toUpperCase();
+  if(val('c-v3'))A.cfg.v3=val('c-v3').toUpperCase();
+  if(val('c-v4'))A.cfg.v4=val('c-v4').toUpperCase();
+  if(val('c-sid'))A.cfg.sheetId=val('c-sid');
+  if(val('c-akey'))A.cfg.apiKey=val('c-akey');
+  if(val('c-scr'))A.cfg.scriptUrl=val('c-scr');
+  if(val('c-sm8'))A.cfg.sm8Key=val('c-sm8');
   localStorage.setItem('sa_cfg',JSON.stringify(A.cfg));
   showToast('✓ Settings saved','ok');
-  renderTechList();
   buildVanSelector();
 }
 
@@ -811,8 +808,8 @@ function updateHeader(title){
   }
 }
 
-const TECH_NAV=[{id:'stock',icon:'📦',label:'Stock'},{id:'log',icon:'📋',label:'Log'},{id:'settings',icon:'⚙️',label:'Settings'}];
-const MGR_NAV=[{id:'dash',icon:'📊',label:'Dashboard'},{id:'reorder',icon:'🔄',label:'Reorder'},{id:'log',icon:'📋',label:'Log'},{id:'settings',icon:'⚙️',label:'Settings'}];
+const TECH_NAV=[{id:'stock',icon:'📦',label:'Stock'},{id:'log',icon:'📋',label:'Log'},{id:'settings',icon:'⚙️',label:'My PIN'}];
+const MGR_NAV=[{id:'dash',icon:'📊',label:'Dashboard'},{id:'reorder',icon:'🔄',label:'Reorder'},{id:'restock',icon:'📦',label:'Restock'},{id:'levels',icon:'🎚',label:'Levels'},{id:'settings',icon:'⚙️',label:'Settings'}];
 
 function buildNav(){
   const items=A.role==='tech'?TECH_NAV:MGR_NAV;
@@ -828,14 +825,15 @@ function navTo(p){
   A.page=p;
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));
   document.getElementById('pg-'+p)?.classList.add('on');
-  buildNav();
-  const titles={stock:A.vanRego?`${A.vanRego} Stock`:'Van Stock',dash:'Dashboard',reorder:'Reorder Required',log:'Usage Log',settings:'Settings'};
+  const titles={stock:A.vanRego?`${A.vanRego} Stock`:'Van Stock',dash:'Dashboard',reorder:'Reorder Required',restock:'Van Restock',levels:'Stock Levels',log:'Usage Log',settings:A.role==='mgr'?'Settings':'My PIN'};
   updateHeader(titles[p]||p);
   if(p==='stock')loadStock();
   if(p==='dash')loadDash();
   if(p==='reorder')loadReorder();
   if(p==='log')loadLog();
-  if(p==='settings'){renderTechList();}
+  if(p==='settings')renderSettings();
+  if(p==='restock')initRestock();
+  if(p==='levels')initLevels();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -882,10 +880,10 @@ async function writeSheet(action,range,values){
 //  STOCK
 // ═══════════════════════════════════════════════════════
 function parseRows(rows){
-  return rows.filter(r=>r[0]&&!r[0].includes('Part No')).map(r=>({
+  return rows.filter(r=>r[0]&&!r[0].includes('Part No')&&!r[0].includes('Simplicity')&&!r[0].includes('Techician')).map(r=>({
     pn:r[0]||'',desc:r[1]||'',cat:r[2]||'',bin:r[3]||'',
     std:parseInt(r[4])||0,curr:parseInt(r[5])||0,
-    status:(r[7]||'').includes('REORDER')?'ror':(r[7]||'').includes('LOW')?'low':'full'
+    status:(r[7]||'').toUpperCase().includes('REORDER')?'ror':(r[7]||'').toUpperCase().includes('LOW')?'low':'full'
   }));
 }
 
@@ -940,59 +938,244 @@ function renderStock(items){
 // ═══════════════════════════════════════════════════════
 //  USAGE SHEET
 // ═══════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+//  ITEM TYPE CLASSIFICATION
+// ═══════════════════════════════════════════════════════
+const ITEM_TYPES = {
+  // Refrigerant — log kg used, track cylinder balance
+  'REC2800110-1': {type:'kg',   unit:'kg',  capacity:10, label:'kg used'},
+  'REC2800106-1': {type:'kg',   unit:'kg',  capacity:12, label:'kg used'},
+  // Cut-to-length — log metres used, track roll balance
+  'AF-14ACR21G':  {type:'m',   unit:'m',   capacity:30, label:'metres used'},
+  'AF-38ACR21G':  {type:'m',   unit:'m',   capacity:18, label:'metres used'},
+  'AF-12ACR21G':  {type:'m',   unit:'m',   capacity:18, label:'metres used'},
+  'AF-58ACR19G':  {type:'m',   unit:'m',   capacity:18, label:'metres used'},
+  'AF-M09010':    {type:'m',   unit:'m',   capacity:2,  label:'metres used'},
+  'AF-M09013':    {type:'m',   unit:'m',   capacity:2,  label:'metres used'},
+  'AF-M09016':    {type:'m',   unit:'m',   capacity:2,  label:'metres used'},
+  'WS-CABLE-4CE': {type:'m',   unit:'m',   capacity:3,  label:'metres used'},
+  'WS-CABLE-25CE':{type:'m',   unit:'m',   capacity:3,  label:'metres used'},
+  'WS-CABLE-15CE':{type:'m',   unit:'m',   capacity:3,  label:'metres used'},
+  // Pack items — log qty used, mark pack finished or still have stock
+  'TBC-CRIMP-BUTT':   {type:'pack', unit:'pcs',  capacity:150, label:'pieces used'},
+  'TBC-CRIMP-SPADE':  {type:'pack', unit:'pcs',  capacity:150, label:'pieces used'},
+  'TBC-CRIMP-EYE':    {type:'pack', unit:'pcs',  capacity:108, label:'pieces used'},
+  'B4430315':         {type:'pack', unit:'ties',  capacity:500, label:'ties used'},
+  'B4430316':         {type:'pack', unit:'ties',  capacity:500, label:'ties used'},
+  'B4430317':         {type:'pack', unit:'ties',  capacity:500, label:'ties used'},
+  'B0920121':         {type:'pack', unit:'screws',capacity:100, label:'screws used'},
+  'B0920438':         {type:'pack', unit:'screws',capacity:100, label:'screws used'},
+  'B0920156':         {type:'pack', unit:'screws',capacity:100, label:'screws used'},
+  'B0920413':         {type:'pack', unit:'screws',capacity:100, label:'screws used'},
+  // Containers/bottles — log use, mark finished or still have stock
+  'AF-RT100S':        {type:'container', unit:'bottle', label:'Used from bottle'},
+  'AF-RT390G':        {type:'container', unit:'bottle', label:'Used from bottle'},
+  'AF-CDICM00100000': {type:'container', unit:'bottle', label:'Used from bottle'},
+  'AF-RT201B':        {type:'container', unit:'bottle', label:'Used from bottle'},
+  'AF-M098':          {type:'container', unit:'bottle', label:'Used from bottle'},
+  'REC1903102-1':     {type:'container', unit:'tin',    label:'Used from tin'},
+  'AF-AA5M':          {type:'container', unit:'tube',   label:'Used from tube'},
+  'AF-P7424':         {type:'container', unit:'stick',  label:'Sticks used'},
+  'AF-EF4516':        {type:'container', unit:'stick',  label:'Sticks used'},
+};
+
+function getItemType(pn){ return ITEM_TYPES[pn]||{type:'ea',unit:'ea',label:'Qty used'}; }
+
+// ═══════════════════════════════════════════════════════
+//  USAGE SHEET
+// ═══════════════════════════════════════════════════════
+let _packStatus = 'have'; // 'have' | 'done'
+// Per-item remaining balance stored in localStorage keyed by pn+van
+function balKey(pn){ return `bal_${pn}_v${A.vanIdx}`; }
+function getBalance(item){
+  const it=getItemType(item.pn);
+  if(it.type!=='kg'&&it.type!=='m') return null;
+  const stored=localStorage.getItem(balKey(item.pn));
+  // If no stored balance, calculate from curr count × capacity
+  return stored!==null ? parseFloat(stored) : (item.curr * it.capacity);
+}
+function saveBalance(pn, val){ localStorage.setItem(balKey(pn), val); }
+
 function openSheet(item){
-  A.item=item;A.qty=1;
+  A.item=item; A.qty=1; _packStatus='have';
+  const it=getItemType(item.pn);
+
   document.getElementById('bs-name').textContent=item.desc;
   document.getElementById('bs-pn').textContent=`${item.pn} · BIN: ${item.bin}`;
   document.getElementById('sm8-job').value='';
   document.getElementById('u-notes').value='';
   document.getElementById('log-as-label').textContent=`${A.techName} · ${A.vanRego||'Van '+A.vanIdx}`;
-  updateSheetBar();
+
+  // Show/hide correct input UI
+  document.getElementById('ui-ea').style.display='none';
+  document.getElementById('ui-measure').style.display='none';
+  document.getElementById('ui-pack').style.display='none';
+
+  if(it.type==='kg'||it.type==='m'){
+    document.getElementById('ui-measure').style.display='block';
+    document.getElementById('lbl-measure').textContent=it.label;
+    document.getElementById('measure-unit').textContent=it.unit;
+    document.getElementById('measure-input').value='';
+    updateMeasure();
+  } else if(it.type==='pack'||it.type==='container'){
+    document.getElementById('ui-pack').style.display='block';
+    document.getElementById('lbl-pack').textContent=it.label;
+    document.getElementById('pack-unit').textContent=it.unit;
+    document.getElementById('pack-input').value='';
+    setPackStatus('have');
+  } else {
+    document.getElementById('ui-ea').style.display='block';
+    document.getElementById('lbl-ea').textContent=it.label;
+    document.getElementById('qv').textContent='1';
+    A.qty=1;
+  }
+
+  // Stock bar
+  updateMainBar(item);
+
   document.getElementById('ov').classList.add('on');
   document.getElementById('bsh').classList.add('on');
   setTimeout(()=>document.getElementById('sm8-job').focus(),380);
 }
+
+function updateMainBar(item){
+  const rem=Math.max(0,item.curr);
+  const pct=item.std>0?Math.max(2,(rem/item.std)*100):100;
+  const st=item.status||'full';
+  const cols={ror:'var(--red)',low:'var(--amb)',full:'var(--grn)'};
+  document.getElementById('bs-bar').style.cssText=`width:${pct}%;background:${cols[st]||cols.full}`;
+  document.getElementById('bs-curr').textContent=`On van: ${item.curr} / Standard: ${item.std}`;
+  const badge=document.getElementById('bs-stat');
+  badge.textContent=st==='ror'?'⚠ REORDER':st==='low'?'▼ LOW':'✓ OK';
+  badge.style.color=cols[st]||cols.full;
+}
+
+function updateMeasure(){
+  const item=A.item;
+  const it=getItemType(item.pn);
+  const used=parseFloat(document.getElementById('measure-input').value)||0;
+  const totalBal=getBalance(item);
+  const afterUse=Math.max(0,totalBal-used);
+  const capacity=it.capacity||1;
+  // How many containers remain after this use
+  const containersAfter=afterUse/capacity;
+  const pct=Math.max(2,(afterUse/(item.curr*capacity))*100);
+  const st=containersAfter<=0?'ror':containersAfter<item.std?'low':'full';
+  const cols={ror:'var(--red)',low:'var(--amb)',full:'var(--grn)'};
+  document.getElementById('measure-bar').style.cssText=`width:${Math.min(100,pct)}%;background:${cols[st]}`;
+  document.getElementById('measure-remaining').textContent=
+    `Remaining after use: ${afterUse.toFixed(1)}${it.unit} (${containersAfter.toFixed(1)} ${it.type==='kg'?'cylinders':'rolls'})`;
+  document.getElementById('measure-containers').textContent=
+    `Current balance: ${totalBal.toFixed(1)}${it.unit}`;
+}
+
 function closeSheet(){
   document.getElementById('ov').classList.remove('on');
   document.getElementById('bsh').classList.remove('on');
 }
-function updateSheetBar(){
-  const item=A.item,q=A.qty;
-  const rem=Math.max(0,item.curr-q);
-  const pct=item.std>0?Math.max(2,(rem/item.std)*100):2;
-  const st=rem===0?'ror':rem<item.std?'low':'full';
-  const cols={ror:'var(--red)',low:'var(--amb)',full:'var(--grn)'};
-  document.getElementById('bs-bar').style.cssText=`width:${pct}%;background:${cols[st]}`;
-  document.getElementById('bs-curr').textContent=`After logging: ${rem} remaining / Std: ${item.std}`;
-  const badge=document.getElementById('bs-stat');
-  badge.textContent=st==='ror'?'⚠ REORDER':st==='low'?'▼ LOW':'✓ OK';
-  badge.style.color=cols[st];
-  document.getElementById('qv').textContent=q;
-  document.getElementById('sl-after').textContent=`${q} of ${item.curr} used`;
-  document.getElementById('sl-max').textContent=`Max: ${item.curr}`;
+
+function stepQ(d){
+  A.qty=Math.max(1,Math.min(A.item.curr||1,A.qty+d));
+  document.getElementById('qv').textContent=A.qty;
+  document.getElementById('sl-after').textContent=`${A.qty} of ${A.item.curr} used`;
+  document.getElementById('sl-max').textContent=`Max: ${A.item.curr}`;
 }
-function stepQ(d){A.qty=Math.max(1,Math.min(A.item.curr||1,A.qty+d));updateSheetBar();}
+
+function setPackStatus(s){
+  _packStatus=s;
+  const haveEl=document.getElementById('pack-have');
+  const doneEl=document.getElementById('pack-done');
+  if(s==='have'){
+    haveEl.style.borderColor='var(--grn)';haveEl.style.background='var(--surf2)';
+    haveEl.querySelector('div:nth-child(2)').style.color='var(--grn)';
+    doneEl.style.borderColor='var(--surf2)';doneEl.style.background='var(--surf)';
+    doneEl.querySelector('div:nth-child(2)').style.color='var(--tx2)';
+  } else {
+    doneEl.style.borderColor='var(--red)';doneEl.style.background='var(--surf2)';
+    doneEl.querySelector('div:nth-child(2)').style.color='var(--red)';
+    haveEl.style.borderColor='var(--surf2)';haveEl.style.background='var(--surf)';
+    haveEl.querySelector('div:nth-child(2)').style.color='var(--tx2)';
+  }
+}
 
 async function confirmUsage(){
-  const item=A.item,qty=A.qty;
+  const item=A.item;
+  const it=getItemType(item.pn);
   const jobNum=document.getElementById('sm8-job').value.trim();
   const notes=document.getElementById('u-notes').value.trim();
   const btn=document.getElementById('btn-ok');
   if(!jobNum){showToast('Enter a ServiceM8 job number','err');return;}
+
+  // Determine qty/amount and whether to decrement stock
+  let logQty, logUnit, decrementStock=false, newStockCount=item.curr;
+
+  if(it.type==='kg'||it.type==='m'){
+    logQty=parseFloat(document.getElementById('measure-input').value)||0;
+    if(logQty<=0){showToast(`Enter ${it.label}`,'err');return;}
+    logUnit=it.unit;
+    // Update local balance
+    const oldBal=getBalance(item);
+    const newBal=Math.max(0,oldBal-logQty);
+    saveBalance(item.pn,newBal);
+    // If balance dropped below one container capacity, decrement container count
+    const oldContainers=Math.ceil(oldBal/it.capacity);
+    const newContainers=Math.ceil(newBal/it.capacity);
+    if(newContainers<oldContainers){
+      decrementStock=true;
+      newStockCount=Math.max(0,item.curr-(oldContainers-newContainers));
+    }
+  } else if(it.type==='pack'||it.type==='container'){
+    logQty=parseFloat(document.getElementById('pack-input').value)||1;
+    logUnit=it.unit;
+    decrementStock=(_packStatus==='done');
+    if(decrementStock) newStockCount=Math.max(0,item.curr-1);
+  } else {
+    logQty=A.qty;
+    logUnit='ea';
+    decrementStock=true;
+    newStockCount=Math.max(0,item.curr-logQty);
+  }
+
   btn.textContent='Saving…';btn.disabled=true;
   try{
     const dateStr=new Date().toLocaleDateString('en-AU');
     const vanLabel=A.vanRego||`Van ${A.vanIdx}`;
-    await writeSheet('append',"'Usage Log'!A:M",[[dateStr,vanLabel,A.techName,jobNum,'',item.pn,item.desc,qty,'','','Yes','',notes]]);
+    const logDesc=it.type==='kg'||it.type==='m'
+      ? `${item.desc} (${logQty}${logUnit})`
+      : item.desc;
+    const packNote=it.type==='pack'||it.type==='container'
+      ? (_packStatus==='done'?' — pack/container finished':'') : '';
+
+    // New 15-column Usage Log: Date, Van, Tech, Job, Client, PartNo, Desc,
+    // Qty/Amount, Unit, UnitCost(blank=formula), TotalCost(blank=formula),
+    // Invoiced, InvNo, PackStatus, Notes
+    const packStatusVal = (it.type==='pack'||it.type==='container')
+      ? (_packStatus==='done'?'Pack/container finished':'Still have stock')
+      : 'N/A';
+    await writeSheet('append',"'Usage Log'!A:O",
+      [[dateStr,vanLabel,A.techName,jobNum,'',item.pn,logDesc,logQty,logUnit,'','','Yes','',packStatusVal,notes]]);
+
     const rowIdx=A.stock.findIndex(i=>i.pn===item.pn);
     if(rowIdx>=0){
-      await writeSheet('update',`'Van ${A.vanIdx} Stock'!F${rowIdx+4}`,[[Math.max(0,item.curr-qty)]]);
-      A.stock[rowIdx].curr=Math.max(0,item.curr-qty);
-      const nc=A.stock[rowIdx].curr;
-      A.stock[rowIdx].status=nc===0?'ror':nc<item.std?'low':'full';
+      const sheetRow=rowIdx+4;
+      // Always update balance col N for kg/m items
+      if(it.type==='kg'||it.type==='m'){
+        const newBal=getBalance(item);
+        await writeSheet('update',`'Van ${A.vanIdx} Stock'!N${sheetRow}`,[[newBal.toFixed(1)]]);
+      }
+      // Decrement stock count col F when needed
+      if(decrementStock){
+        await writeSheet('update',`'Van ${A.vanIdx} Stock'!F${sheetRow}`,[[newStockCount]]);
+        A.stock[rowIdx].curr=newStockCount;
+        A.stock[rowIdx].status=newStockCount===0?'ror':newStockCount<item.std?'low':'full';
+      }
     }
+
     closeSheet();filterS();
-    showToast(`✓ ${qty}× ${item.desc.split('–')[0].trim()} logged`,'ok');
+    const unitLabel=it.type==='kg'||it.type==='m'
+      ? `${logQty}${logUnit}`
+      : `${logQty}×`;
+    showToast(`✓ ${unitLabel} ${item.desc.split('–')[0].trim()} logged`,'ok');
   }catch(e){showToast('Error saving — check Settings','err');console.error(e);}
   btn.textContent='Log Usage →';btn.disabled=false;
 }
@@ -1005,7 +1188,7 @@ async function loadDash(){
   const vanData=[];
   for(let v=1;v<=4;v++){
     const rows=await fetchSheet(`'Van ${v} Stock'!A4:H100`);
-    vanData.push(parseRows(rows||DEMO));
+    vanData.push(rows?parseRows(rows):[]);
   }
   const rors=new Set(),lows=new Set();
   vanData.forEach(vd=>vd.forEach(i=>{if(i.status==='ror')rors.add(i.pn);if(i.status==='low')lows.add(i.pn);}));
@@ -1049,7 +1232,7 @@ async function loadReorder(){
   const rorMap={};
   for(let v=1;v<=4;v++){
     const rows=await fetchSheet(`'Van ${v} Stock'!A4:H100`);
-    parseRows(rows||DEMO).filter(i=>i.status==='ror').forEach(i=>{
+    parseRows(rows||[]).filter(i=>i.status==='ror').forEach(i=>{
       if(!rorMap[i.pn])rorMap[i.pn]={...i,vans:[]};
       rorMap[i.pn].vans.push(getVanRego(v));
     });
@@ -1097,15 +1280,18 @@ async function loadLog(){
     w.innerHTML='<div class="empty"><div class="ei">📋</div><div class="et">No entries yet.<br>Log a part from the Stock tab.</div></div>';
     return;
   }
-  w.innerHTML=rows.filter(r=>r[0]&&r[3]).slice(-20).reverse().map(r=>`
-    <div class="log-item">
+  w.innerHTML=rows.filter(r=>r[0]&&r[3]).slice(-20).reverse().map(r=>{
+    const qty=r[7]||1, unit=r[8]||'ea';
+    const qtyLabel=(unit==='ea'||unit==='kit')?`${qty}×`:`${qty} ${unit}`;
+    const packSt=r[13]&&r[13]!=='N/A'?` · ${r[13]}`:'';
+    return `<div class="log-item">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
         <span style="font-size:13px;font-weight:600">${r[6]||r[5]||'—'}</span>
-        <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--acc)">${r[7]||1}×</span>
+        <span style="font-size:11px;font-family:'DM Mono',monospace;color:var(--acc)">${qtyLabel}</span>
       </div>
-      <div style="font-size:10px;color:var(--tx2);font-family:'DM Mono',monospace">${r[5]||''} · Job: ${r[3]||'—'}</div>
+      <div style="font-size:10px;color:var(--tx2);font-family:'DM Mono',monospace">${r[5]||''} · Job: ${r[3]||'—'}${packSt}</div>
       <div style="font-size:10px;color:var(--tx3);margin-top:3px">${r[0]||''} · <strong style="color:var(--tx2)">${r[1]||''}</strong> · ${r[2]||''}</div>
-    </div>`).join('');
+    </div>`;}).join('');
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1117,6 +1303,223 @@ function showToast(msg,type=''){
   t.textContent=msg;t.className='toast show '+(type||'');
   clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('show'),3200);
 }
+
+
+// ═══════════════════════════════════════════════════════
+//  SETTINGS — role-based rendering
+// ═══════════════════════════════════════════════════════
+function renderSettings(){
+  const scroll=document.getElementById('settings-scroll');
+  if(A.role==='tech'){
+    scroll.innerHTML=`
+      <div style="padding:14px 14px 0">
+        <div class="info-b">🔑 Your PIN is stored on this device only. To reset it, ask your manager to remove your account, then log in again to create a new PIN.</div>
+      </div>
+      <div class="cfg-sec">
+        <div class="cfg-title">Your Account</div>
+        <div class="cfg-card" style="display:flex;align-items:center;gap:12px">
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600">${A.techName}</div>
+            <div style="font-size:12px;color:var(--tx2);margin-top:2px">${A.vanRego||'Van '+A.vanIdx} · PIN set ✓</div>
+          </div>
+        </div>
+      </div>
+      <div style="height:20px"></div>`;
+  } else {
+    scroll.innerHTML=`
+      <div style="padding:14px 14px 0">
+        <div class="info-b">⚙️ All settings saved on this device. API credentials are only visible to the manager.</div>
+      </div>
+      <div class="cfg-sec">
+        <div class="cfg-title">Manager Password</div>
+        <div class="cfg-card">
+          <label>New Password</label>
+          <input type="password" id="c-pw" placeholder="Leave blank to keep current">
+          <div class="cfg-note">Default on first install: <strong>simplicity</strong></div>
+        </div>
+      </div>
+      <div class="cfg-sec">
+        <div class="cfg-title">Van Fleet — Registration Numbers</div>
+        <div class="cfg-card">
+          <div class="van-cfg-grid">
+            <div><label>Van 1 Rego</label><input type="text" id="c-v1" value="${A.cfg.v1||''}" placeholder="1ABC 234" style="text-transform:uppercase"></div>
+            <div><label>Van 2 Rego</label><input type="text" id="c-v2" value="${A.cfg.v2||''}" placeholder="2XYZ 567" style="text-transform:uppercase"></div>
+            <div style="margin-top:8px"><label>Van 3 Rego</label><input type="text" id="c-v3" value="${A.cfg.v3||''}" placeholder="3DEF 890" style="text-transform:uppercase"></div>
+            <div style="margin-top:8px"><label>Van 4 Rego</label><input type="text" id="c-v4" value="${A.cfg.v4||''}" placeholder="4GHI 123" style="text-transform:uppercase"></div>
+          </div>
+          <div class="cfg-note">Regos appear in the van selector at login and all log entries.</div>
+        </div>
+      </div>
+      <div class="cfg-sec">
+        <div class="cfg-title">Registered Technicians</div>
+        <div class="cfg-card">
+          <div class="cfg-note" style="margin-bottom:8px">Remove a tech to reset their PIN.</div>
+          <div class="tech-list" id="tech-list"></div>
+        </div>
+      </div>
+      <div class="cfg-sec">
+        <div class="cfg-title">Google Sheets</div>
+        <div class="cfg-card">
+          <label>Spreadsheet ID</label>
+          <input type="text" id="c-sid" value="${A.cfg.sheetId||''}" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms">
+          <div class="cfg-note">From your Sheet URL: docs.google.com/spreadsheets/d/<strong>[ID]</strong>/edit</div>
+        </div>
+        <div class="cfg-card">
+          <label>API Key (read)</label>
+          <input type="text" id="c-akey" value="${A.cfg.apiKey||''}" placeholder="AIzaSy…">
+        </div>
+        <div class="cfg-card">
+          <label>Apps Script URL (write)</label>
+          <input type="text" id="c-scr" value="${A.cfg.scriptUrl||''}" placeholder="https://script.google.com/macros/s/…/exec">
+          <div class="cfg-note">Deploy google-apps-script.js as a Web App. Paste URL here to enable stock writes.</div>
+        </div>
+      </div>
+      <div class="cfg-sec">
+        <div class="cfg-title">ServiceM8</div>
+        <div class="cfg-card">
+          <label>API Key</label>
+          <input type="text" id="c-sm8" value="${A.cfg.sm8Key||''}" placeholder="your-servicem8-api-key">
+          <div class="cfg-note">ServiceM8 → Settings → Integrations → API Keys → Create New Key.</div>
+        </div>
+      </div>
+      <button class="btn-save" onclick="saveCfg()">Save All Settings</button>
+      <div style="height:20px"></div>`;
+    setTimeout(()=>renderTechList(),50);
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  VAN RESTOCK
+// ═══════════════════════════════════════════════════════
+function initRestock(){
+  const sel=document.getElementById('restock-van-sel');
+  sel.innerHTML='';
+  for(let i=1;i<=4;i++){
+    const opt=document.createElement('option');
+    opt.value=i;opt.textContent=getVanRego(i)+' (Van '+i+')';
+    sel.appendChild(opt);
+  }
+  loadRestockItems();
+}
+
+async function loadRestockItems(){
+  const vanIdx=document.getElementById('restock-van-sel').value;
+  const wrap=document.getElementById('restock-items');
+  wrap.innerHTML='<div class="empty"><div class="spin"></div><div class="et">Loading…</div></div>';
+  const rows=await fetchSheet(`'Van ${vanIdx} Stock'!A4:H100`);
+  const items=parseRows(rows||[]);
+  if(!items.length){wrap.innerHTML='<div class="empty"><div class="ei">⚠️</div><div class="et">Could not load van stock</div></div>';return;}
+  wrap.innerHTML='<div style="font-size:11px;color:var(--tx2);padding:0 0 8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Enter qty to transfer from workshop to van</div>'+
+    items.map((item,i)=>`
+    <div class="cfg-card" style="margin-bottom:8px;display:flex;align-items:center;gap:10px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.desc}</div>
+        <div style="font-size:10px;color:var(--tx2);font-family:monospace;margin-top:2px">${item.pn} · Current: <strong style="color:${item.status==='ror'?'var(--red)':item.status==='low'?'var(--amb)':'var(--grn)'}">${item.curr}</strong> / Std: ${item.std}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <button class="sbtn" style="width:32px;height:32px;font-size:16px" onclick="adjRestock(${i},-1)">−</button>
+        <div style="font-size:18px;font-weight:700;font-family:monospace;min-width:28px;text-align:center;color:var(--acc)" id="rst-qty-${i}">0</div>
+        <button class="sbtn" style="width:32px;height:32px;font-size:16px" onclick="adjRestock(${i},1)">+</button>
+      </div>
+    </div>`).join('')+
+    `<button class="btn-save" style="margin-top:8px" onclick="submitRestock(${vanIdx})">✓ Confirm Restock</button>`;
+  window._restockItems=items;window._restockQtys=items.map(()=>0);
+}
+
+function adjRestock(i,d){
+  window._restockQtys[i]=Math.max(0,window._restockQtys[i]+d);
+  document.getElementById('rst-qty-'+i).textContent=window._restockQtys[i];
+}
+
+async function submitRestock(vanIdx){
+  const qtys=window._restockQtys||[],items=window._restockItems||[];
+  const toUpdate=items.filter((_,i)=>qtys[i]>0);
+  if(!toUpdate.length){showToast('No quantities entered','err');return;}
+  let count=0;
+  for(let i=0;i<items.length;i++){
+    if(qtys[i]>0){
+      const newQty=Math.min(items[i].std,items[i].curr+qtys[i]);
+      await writeSheet('update',`'Van ${vanIdx} Stock'!F${i+4}`,[[newQty]]);
+      const dateStr=new Date().toLocaleDateString('en-AU');
+      await writeSheet('append',"'Usage Log'!A:M",[[dateStr,getVanRego(vanIdx),A.techName,'WORKSHOP RESTOCK','',items[i].pn,items[i].desc,-qtys[i],'','','—','','Workshop restock']]);
+      count++;
+    }
+  }
+  showToast(`✓ ${count} item${count!==1?'s':''} restocked on ${getVanRego(vanIdx)}`,'ok');
+  loadRestockItems();
+}
+
+// ═══════════════════════════════════════════════════════
+//  STOCK LEVELS
+// ═══════════════════════════════════════════════════════
+function initLevels(){
+  const sel=document.getElementById('levels-van-sel');
+  sel.innerHTML='';
+  for(let i=1;i<=4;i++){
+    const opt=document.createElement('option');
+    opt.value=i;opt.textContent=getVanRego(i)+' (Van '+i+')';
+    sel.appendChild(opt);
+  }
+  loadLevelItems();
+}
+
+async function loadLevelItems(){
+  const vanIdx=document.getElementById('levels-van-sel').value;
+  const wrap=document.getElementById('level-items');
+  wrap.innerHTML='<div class="empty"><div class="spin"></div><div class="et">Loading…</div></div>';
+  const [vanRows,mpRows]=await Promise.all([
+    fetchSheet(`'Van ${vanIdx} Stock'!A4:H100`),
+    fetchSheet("'Master Parts'!A3:K60")
+  ]);
+  const items=parseRows(vanRows||[]);
+  const mpMap={};
+  if(mpRows)mpRows.forEach(r=>{if(r[0])mpMap[r[0]]={minReorder:parseInt(r[10])||0};});
+  if(!items.length){wrap.innerHTML='<div class="empty"><div class="ei">⚠️</div><div class="et">Could not load data</div></div>';return;}
+  wrap.innerHTML='<div style="font-size:11px;color:var(--tx2);padding:0 0 8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Reorder triggered when qty drops below this number</div>'+
+    items.map((item,i)=>{
+      const minR=mpMap[item.pn]?.minReorder??0;
+      return `<div class="cfg-card" style="margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.desc}</div>
+            <div style="font-size:10px;color:var(--tx2);font-family:monospace;margin-top:2px">${item.pn} · Std Qty: ${item.std}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <button class="sbtn" style="width:32px;height:32px;font-size:16px" onclick="adjLevel(${i},-1)">−</button>
+            <div style="text-align:center;min-width:40px">
+              <div style="font-size:18px;font-weight:700;font-family:monospace;color:var(--acc)" id="lvl-val-${i}">${minR}</div>
+              <div style="font-size:9px;color:var(--tx3)">min</div>
+            </div>
+            <button class="sbtn" style="width:32px;height:32px;font-size:16px" onclick="adjLevel(${i},1)">+</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('')+
+    `<button class="btn-save" style="margin-top:8px" onclick="saveLevels(${vanIdx})">✓ Save Level Changes</button>`;
+  window._levelItems=items;window._levelVals=items.map(item=>mpMap[item.pn]?.minReorder??0);
+}
+
+function adjLevel(i,d){
+  const item=window._levelItems[i];
+  window._levelVals[i]=Math.max(0,Math.min(item.std,window._levelVals[i]+d));
+  document.getElementById('lvl-val-'+i).textContent=window._levelVals[i];
+}
+
+async function saveLevels(vanIdx){
+  const items=window._levelItems||[],vals=window._levelVals||[];
+  const mpRows=await fetchSheet("'Master Parts'!A3:A60");
+  if(!mpRows){showToast('Could not read Master Parts','err');return;}
+  let count=0;
+  for(let i=0;i<items.length;i++){
+    const mpRowIdx=mpRows.findIndex(r=>r[0]===items[i].pn);
+    if(mpRowIdx>=0){
+      await writeSheet('update',`'Master Parts'!K${mpRowIdx+3}`,[[vals[i]]]);
+      count++;
+    }
+  }
+  showToast(`✓ Reorder levels updated for ${count} items`,'ok');
+}
+
 
 window.addEventListener('DOMContentLoaded',()=>{
   loadCfg();
