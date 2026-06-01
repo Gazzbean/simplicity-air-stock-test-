@@ -6,16 +6,16 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Simplicity Air">
-<meta name="theme-color" content="#0a1628">
+<meta name="theme-color" content="#0e1230">
 <link rel="manifest" href="manifest.json">
 <title>Simplicity Air – Stock Control</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --bg:#0a1628;--bg2:#111e35;--bg3:#172444;--surf:#1c2d4a;--surf2:#213356;
-  --acc:#00c2ff;--acc2:#0099cc;--grn:#00d97e;--amb:#ffb020;--red:#ff4444;--org:#ff6b35;
-  --tx:#e8f0fe;--tx2:#8aa0c0;--tx3:#4d6280;
+  --bg:#0e1230;--bg2:#14193d;--bg3:#1a2050;--surf:#1e2658;--surf2:#252e68;
+  --acc:#00aae6;--acc2:#0088c0;--grn:#00d97e;--amb:#ffb020;--red:#ff4444;--org:#ff6b35;
+  --tx:#e8f0fe;--tx2:#8aa8c8;--tx3:#4d6080;
   --r:14px;--rs:8px;--nav:64px;--hdr:56px;
   font-family:'DM Sans',sans-serif;
 }
@@ -233,9 +233,9 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--tx);overflow:h
      SCREEN 1 — Role selector
 ══════════════════════════════════════════ -->
 <div class="screen" id="scr-role">
-  <div class="logo">❄️</div>
-  <div class="app-name">Simplicity Air</div>
-  <div class="app-sub">Van Stock Control</div>
+  <img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAAuAQQDASIAAhEBAxEB/8QAHAAAAQQDAQAAAAAAAAAAAAAABgAFBwgBAwQC/8QAORAAAgEDAwMCBQMCBQIHAAAAAQIDBAURAAYhBxIxE0EIFCJRYRUycUKRIzNygaEkkkNTYrGy8PH/xAAaAQEAAwEBAQAAAAAAAAAAAAAAAQIDBAUG/8QALhEAAgIBAwIEBQMFAAAAAAAAAAECEQMEEiExYQUUQVETIjJxsSSBwZGh0eHw/9oADAMBAAIRAxEAPwC0e7qa7vcqeqtt9prckMR9RJ5SEOTwSvg+MZJ+/H2apk3ZLURUsO67XLHJC0xkyitgEEYCrnBX+oeOScjA1v39Ubaiu1NDfqisp1kgJZ0A9HtUkr35BOe4fSB5OBz40yonTqhdES4VbBqaWnlcM/Y0TAhi7YAwAxxg+fYleAHhqfeVRb4q227goKxou9kEPa0VRxhVJ7eB3DnknyQR4G+rp9wQVa3N900EFBKYAfUAChVXBKk/TlyzHxjhPONcVNt7bu55jW0d+rqtlKeuyuBkfUQMBQFJznIGRwRgnOnii2VbKOFkp6mvVjOJldpg5RhG0eAGUjBRmGMe/GMDABKDxnSVgyhlIIPgjQumxbSsvcaiveMuHeFp8o5BJHcMc+T/ADnnJ50QWmhhttsprfT59GmiWKPOM9qjA8ADwNAdOuK93a3WS2TXO7VkNFRQ49WeZu1EyQoJPsMkDXbqCPjeu09B0hht8IbtudzhglYeOxA0mD/JRdaYofEmo+4J1R1ZAykEHkEHQ51B3rZNk7drb1eJz2UsBmEMeDJL9QUBR+WZRk8c6qv8OnXms25RrtDc8y1FEIylrrKiTApnx9MUrf8AlE4Ab+j/AE+MdYLjd7ls/d9VfHk+e7qNZFfgRgVK4UDwFHt7e/Oc67sfhsnJ73wq/fk83V+ILBnxYVFtzdX6Kghofi7l/UHNw2Qooifo9C4ZlUfnuQKf+NWO6f7nj3htWj3BBa7lbYate+KKvjVJCvs2AT9J8g+451Uj4bel9jq9y2+57+kjjaZRPbLRMv8AnnyrzfYHysZ5bGTxgNdVAAuFGBrLWwxY5KMFR24ssMl7WnXD7Gquq6Who5aytqIqamhUvLLK4REUeSSeAPzqM5/iC6Rw1nyzbuhcg4MkdLM8ef8AWEwf5Ghn426e/VHSmn/S4p5aCO4I9zEIJxEFbtLAf0B+3PsDgnUEdLLp0GrdqU9j35YLjQXfLCS9QTSOr5Jw30E9mBgY7CONMGmjPHvdv7GjZbTdfVLbFo6Z1+/LbWQXy30iqAKKZW73ZgqoT/RywzkcD2176I7/AB1J2Om5P0mS15qZKcxNL6isUI+pWwMqc48eQR7ahHqZWWnot0Ss1s6f1lDc49wV8k01bV08VUtbD2FiWGO1gB6ajjgD8nTb1K6wb72TsnYFDaqm20VxuFl/UK5Ut0YjUSMPSVYxwgA7uB51C029fIur4b7dhZbjS1TzfHWHr/tuO23272mmstrrQop4ZqJHWYhQSJDnvVmALY+n3wONOm7utXWK97RXeGz9sfo22qWJTVV0kKTmSQYEhUOf8pWyMhT45I5Ar5PJw7VPuLLX6WqzWrr3uCv+Ha+7olWlpty22sioI5khBileQoVfsORntLZHjIz+NMG2OpXxGbr2NUXqwW6gmpaSSR5Lh8rEskoUDMcUbHDduDkgEknGeMajymTm6VOuWLLbSyJFE0jsFRQWYn2A86inaXXvZm6KO/1VrpL16Vit73CqeamVQ0a54XDHLHBxnGo42T14uG6Oiu+Xv8cCXu0WtmjngXsSdZgY0bt/pYOQDjg5HjUedHrxXdP+gG8N520QLcK+50tqo3mhEiEKMvlTwww78H7a0jpHUt3W0kLLK9A+q69Vbbda1LFLalt9QsQ7pxMsgZSwwwA+oY5H5H31Juqi0nXm77L6OWRYbbaZ9yXuSoqKaKCiWnpqWmEpjVzFHjuZmRsDjOCT4ALhZ98fFBarzaprzs83akuDgLSCjijOPJBdGzCcZOZOPvqs9NK21SX3FkofEB1ro+lEtqpXsk12q7gHkWNZxCqRoQCe4g5YlgAoH86PZd3bdpI6MXW82+1VNXAk0dLW1UcM2H8DtYg+eP5B1Xrqz1G3NV/EfYdi2uC0mmjqKGN0q7fDUyQyyYeUq7A9pCEDK/bOon3xSdQN6fEhHY7hV2es3PS1SQ07Iv8A0sSxZnRT9PIUH6uOTq0NKpRV8cWLL9DS1VPrR1A639L7Htye8XyzTVdear5n5agR4gUdSigkA5KNzx50dfEb1jqNl7Essu25Yf12+LHNS98YlEUGAzP2++cqo/JP21j5eb21zZJOROBrhoLrQV1XWUlJVRzTUcgjqFX/AMNiMgHQTtK4b0puntpi3RVwVG77sOESnWNKYsO7BUeRGnLH3bj3GnSjoYNu7rtUNN3fLV1G9I7Mcl5oyZVZj7swaUk/fVVjVO+v+DmyZ3GaS6cX+/QJLncqS2xxyVkvpLLMkKHtLZdzhRwPc66wdNF1uE8N+tNugVCKozPMSMkRont9j3Mmmimu9/u12u1FaY6OGCjq/QFXURsyrhFyoUEd7dxPOQAMeTqqxtqxLUKMtvXmunrVhfpa8xBhGodgzADuIGATpaodIKb1mucNxphRbZpbujxEGSSIM0eT2FefuXQ/6Vk+w01yXqueJJD03nPancUeNe4fv+lcIRnKr/s38ZJdwR7nesh/Q6i2xU3YfW+ZjZn7vbtxxj75+351wUUe/FqadqyosckPPrpGjq3vjtJ/hc5+5+wyBpt9wuFJFWfIbOnpGliaZB3g+pMFCIpGAAMIo84Ax/tiTdW4Ep1Rdn3B6sIRIDlYw/aTwQDlSRjIz5Hk8azBTb/WJXlr7QZFUEosRIcgePbAJA8fc680FNv0lZamrt4D4Lx55TgcDC4yCDnHnPGPOgPUu6L+KlUXaVeIgoZ25YnPsOBzjn/jz59/r+5p5YfR27JBHJRpMRMrMVk9TDxkjGCF5HHOQeADrnp4eoQzStV2xwjAtUOmC4buyAAP6QE5IByx8457Wh3qIEUVFt9QQ4ZgMAv35PBXj6cAfwSfIwBnb153BW3Zaa4Wv5WHskZmNPIuCCAoDH6Sf3DHv29w4YDXR1B2lZd7bXqdv36k+YpJsMMMVaNxyrqw5Vgff+RyDrmEO+Epqo/N2maaSMiDCMixPxz4OR+7g/j86dLB+ugTC9miJGBGabOD5yTkce3HPg/fUptO0Cm26OkW19vXia3XNdz08qcriop2R19mVjGMr/8ATqQNqU20qLbFTtu7S1lyuFHTU9TSQXSSItTxCUfLrMyr2hPUIKLIG7RyR2YGnj4rOqO3tuww2CgpKS57piIljeRQ6W7I4dx4ZjwRGePDMMYBgbonLW3Oo3fUTyVFZWVVPTF3cl5JpHqlPJ8lic69/H+oxRbTXe+587qMes00cubJk3xim4qld92v4HS+dQrPQXyrprztvdMFzhmPzKz18HqCTzkn0/PggjgjBHGNWL+Hjq/Zt/UslkE1dHeKKL1DHWqnfNECB3h04cgkA8A8g499CO7+gVZuzp9DLV1UUG66VP8Ao2YfSIscU0rDyPOG/oJwMrxoC+Dfad0o+tN3a60lRQ1FioZIqiGRcFZZWChT/srEHweCNY6rJjzYpLdbj/3HY6/C9FhwwWaGPZKS5V/klL4h+q+9ene77U1u2wavbQgJrJ5oyY6l2P7BIufTKgf1Dnu8EDUBdY9/7C6g0FHFtbp69q3HJUK0tTAI8yLggxhIv8wkkckAjGr5yJFIjJIFdWGGVhkH8Ea4bfaLJRzGpoLbb6eR85lggRGb78qNefh1EMdPbyu/5PWaKD9RrPeaCg6f9OboGjuUVK8r0rN9VO9bUnsjI9mCqpI9ix0bb/pafc/xeWba9ORLRWyoobeE84jp0Esgx/3DVyHpLdNVCV6elkqAAwZkUuMeDnzryKe1x1T1IhpFqFJLSdqhx7Ek+dX86/b0f9WKKv8Ax8XoBdr7eicByZ650z5OBGn/ACX0X9dvT2R8J0NgULDI9HRWvzjLN2mT+4V/76nSoo7fVss09NTTkD6XeNWwPPBOs1UdFUxslSlPMkZyRIFYKfuc+NZLUVGEa+l39xRQXcTfo/w1bXocqGv98q7pJ9zHAohT/bJzo02t13r+nnStentTtSop7/RQPDTTTSBIwspLrIyH6icPnjhuORqQ/iG6R7p6h7+sk9mNnhsVFSJCUep7Hw0paVlQKRjtxjnnGp8noLQXgkqKSiLwgLC0kaFkA8BSeR/trqyanG4LcrttkUUJfbd12f0KuF4vMMlDNuuupaOjgmBSRqaEtO8hB5AZggGfYZ9xpx6muli+HTpxYA4Wa5SVV7qEzjOTiM/2f/jV7KumoqhB83DBMqZI9VVYD8861TUVqkEKzU1G4C9sQeNDx9lyPH8ap55tptet/wAE0Uk67bLvWxp9gboit71FtobNb4pHKExxVMLeoySY/aGLZBPnn3Gpa2v8TNRu7eNnse1un9yro6pwtaPmFMkWcfUpX6Qi8klyMj7asXLHFLG0Uqo6MO1lYAgj7Ea5aOntVDE4o4qOmTu+sRKqDP5xjnWMtRGcanG2gU+6Jsm9/jGu24Awmp6Sprq1TnICr/gRH+zD+2hPbu+o+n/xHbh3Zu20109bHVV4FLEVSRZZHIU/Vj6ezIBGeCMZ1fCkpLdTzsaWmpYpcfUY0VWwfvjWuot9sq5lrjR0U1QoxHO8Ssw+2Gxn+x1fzat3HiqJIQ+NK1pfeiFPfIIyxt1ZBV5xyIpB6bf/ADX+2os+Gzb1w6k75p97budXsm0aKnpaf1BiNnhjHpLz7IAZG/8AUV++iPefSX4gN6XeqtO4d4W17DUVhnIWrb0EGcqFhC9xAGMITjPvnnVhunGz7LsjZ1HtS1dskFLGfVaTHfO7cvI4+7H/AIwPbVvirFh2J2/wiHZxW22XK+1h3N+rVlsM8fp0cUcMbFKfOQT3qcM5+o/jtHtrXu+0XWjtH6u+4K6va1ypWrDJDCoYIctyqg/sLe+jWOSJo+5HQovkgggayTHLH+5WVh9wQQdc/wAZp2cb0UHBpt2/W3196ugapaiGr3tV1qyq1PQWyNQ2eP8AFYyE/wDaif310dPo2G1aSpkGJKzvrH/mVy//ALMNPPZTx/TiJe/6ccDu48fnjXvuhgjBLJGg4GSAB+NUc7VGuPA4z3N+/wDf/So2aWlpaodBGnXqrvVDZLfV2qpraZEnYVElO5XAK/T3Ee2dCfTuovsj018vt7uklE8yx0lKapx80+QCx5/y19/ueNTFf7VLc/QVKlY4kLCaKSLvSdGGCjDI40P1OxnnukNY10VI4GQQwJT4SNFIKovPA41vn8WzYtC9NgxJzv6uOj6979D53P4NPL4j5tze3j5b4tevXp29zfVbYvM3zKjc1QY6hmftKspjJLEKpVhhfqx98KNaX2jfjVyzPu2qmWRie1kZOwFkOF7XABHacewzyD7mmlrA+iGLZtorbNSVlPXVzVzy1TSrK2clSiADnJ4wR5On3S0tALXmZPUiZO5l7gR3KcEfkfnXrS0BXbeHwqbdu1bNXWvdN6oqmeQySms7awOxOSST2uSfuSdH3Rbo7YOmlunSnmkulxqZFeetnjCn6QQqooz2gdze5OSefGpL0tbS1GWUdrlwRtRgAAY1zw0FFDXz18VLClVUIiTTKgDyKme0MfJA7mxnxk66dLWJIwXvbguNdLUpVPB6lK8RUePUPCyY+4Uuv8N+Bjlj2/Xwt83TG3U84l7hTxoywAemYyeOe45B8f0gfnRTpaAFrZtR6K70tb86kiwBF7fRUMQsAiz3fu8jPbnHP3Gtl72yKx7jNT/LRy1ZpjkxgE+k/cQxwc549jol0tLAI3PaEtf6rNWLTiemhgmiRcpII+4qD44DnPAGRkeDpVmz2lir5EqkNTUztImY1VQpnWXtYhSWP0gZbOOcDRdpam2AWfbFQ91pLl8xTxtBHCvoiIEExiTw+AwGXBwMA4II51roNoywokdXWwVqirjrCZKYA+rz6hH+o4P850W6WosAnUbXraiGWmkrIFhVZEhYR9zEPOsp7g3HHb245Bzk/bSoNr1NHcbfUCanmSmWRXygQ/VKX7gApA4OMDtA9uNFmlpYBu5bbnqL/wDqsFYsJaWmMqFSRJHExbtPPBycg+3IOQdNsO0a6OzUtF30bPTVXrZ9pR2OvP0HH7geQ3jzo20tTYBWbbM81yqZ3+RWOWV5e9Ub1XDQ+n6TEY+j34PsMYPOtsW25ZdpvY6yaHteQEekvb2IJFYLkAEthf3YBzyfyS6WosAfUbPrZ6WeB7ye6pqFqaif0QXklWMKpxnAAYBgB47F/OtrbbrZrhNUzSUKtJIZmnjjb1WYwCIp+EyCfJ4wMe+ivS1NgHKCwTRbQkstQtM7NH2cMQr4A5JUKR4//dcR2lWTpH8zXxK6x04DRRdvY0UssikAYHHevsM9pyOcaMNLUWAPTZQZkFRXeonqTySsIVLyNL6ZZgWB7DlGOV5GQARjW6u29caimghL0jLTV81TGCT9ayeocHKnBHqfY+PbRVpaWDCAhQDjOPbS1nS0B//Z"
+    alt="Simplicity Air" style="width:240px;max-width:80vw;margin-bottom:12px;border-radius:4px">
+  <div class="app-sub" style="margin-bottom:32px;letter-spacing:.5px;text-transform:uppercase;font-size:11px;font-weight:600">Van Stock Control</div>
   <div class="role-grid">
     <div class="rc" id="rc-tech" onclick="selRole('tech')">
       <div class="rc-icon">🔧</div>
@@ -255,7 +255,8 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--tx);overflow:h
      SCREEN 2a — Tech: van + name
 ══════════════════════════════════════════ -->
 <div class="screen hidden" id="scr-tech-info">
-  <div class="logo" style="width:48px;height:48px;font-size:22px;border-radius:12px;margin-bottom:12px">🔧</div>
+  <img src="data:image/jpeg;base64,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"
+    alt="Simplicity Air" style="height:28px;margin-bottom:14px;border-radius:2px">
   <div class="app-name" style="font-size:20px;margin-bottom:3px">Technician Login</div>
   <div class="app-sub" style="margin-bottom:24px">Select your van and enter your name</div>
   <div class="login-form">
@@ -276,7 +277,8 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--tx);overflow:h
      SCREEN 2b — Manager: password
 ══════════════════════════════════════════ -->
 <div class="screen hidden" id="scr-mgr-login">
-  <div class="logo" style="width:48px;height:48px;font-size:22px;border-radius:12px;margin-bottom:12px;background:linear-gradient(135deg,var(--grn),var(--acc2))">📊</div>
+  <img src="data:image/jpeg;base64,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"
+    alt="Simplicity Air" style="height:28px;margin-bottom:14px;border-radius:2px">
   <div class="app-name" style="font-size:20px;margin-bottom:3px">Manager Login</div>
   <div class="app-sub" style="margin-bottom:24px">Enter your name and password</div>
   <div class="login-form">
@@ -356,6 +358,8 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--tx);overflow:h
      MAIN APP
 ══════════════════════════════════════════ -->
 <div class="hdr" id="hdr" style="display:none">
+  <img src="data:image/jpeg;base64,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"
+    alt="SA" style="height:24px;border-radius:2px;flex-shrink:0;opacity:.92">
   <div class="hdr-title" id="hdr-title">Stock Control</div>
   <div id="hdr-right" style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0"></div>
   <button class="hdr-lock" onclick="lockApp()" title="Lock / sign out">🔒</button>
@@ -488,9 +492,13 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--tx);overflow:h
     <div id="ui-pack" class="fg" style="display:none">
       <span class="flabel" id="lbl-pack">Qty used from pack</span>
       <div style="display:flex;align-items:center;gap:10px">
-        <input class="fi" type="number" id="pack-input" min="1" step="1" placeholder="e.g. 12" style="font-size:22px;font-weight:700;font-family:monospace;text-align:center">
+        <button class="sbtn" onclick="stepPack(-1)">−</button>
+        <input class="fi" type="number" id="pack-input" min="1" step="1" placeholder="10"
+          style="font-size:22px;font-weight:700;font-family:monospace;text-align:center;flex:1">
+        <button class="sbtn" onclick="stepPack(1)">+</button>
         <span style="font-size:13px;color:var(--tx2);min-width:36px" id="pack-unit">pcs</span>
       </div>
+      <div id="pack-hint" style="font-size:11px;color:var(--acc);margin-top:6px;display:none;font-weight:600"></div>
       <div style="margin-top:14px">
         <span class="flabel">Pack / container status</span>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">
@@ -957,16 +965,17 @@ const ITEM_TYPES = {
   'WS-CABLE-25CE':{type:'m',   unit:'m',   capacity:3,  label:'metres used'},
   'WS-CABLE-15CE':{type:'m',   unit:'m',   capacity:3,  label:'metres used'},
   // Pack items — log qty used, mark pack finished or still have stock
-  'TBC-CRIMP-BUTT':   {type:'pack', unit:'pcs',  capacity:150, label:'pieces used'},
-  'TBC-CRIMP-SPADE':  {type:'pack', unit:'pcs',  capacity:150, label:'pieces used'},
-  'TBC-CRIMP-EYE':    {type:'pack', unit:'pcs',  capacity:108, label:'pieces used'},
-  'B4430315':         {type:'pack', unit:'ties',  capacity:500, label:'ties used'},
-  'B4430316':         {type:'pack', unit:'ties',  capacity:500, label:'ties used'},
-  'B4430317':         {type:'pack', unit:'ties',  capacity:500, label:'ties used'},
-  'B0920121':         {type:'pack', unit:'screws',capacity:100, label:'screws used'},
-  'B0920438':         {type:'pack', unit:'screws',capacity:100, label:'screws used'},
-  'B0920156':         {type:'pack', unit:'screws',capacity:100, label:'screws used'},
-  'B0920413':         {type:'pack', unit:'screws',capacity:100, label:'screws used'},
+  // min: minimum qty per job  step: increment size
+  'TBC-CRIMP-BUTT':   {type:'pack', unit:'pcs',  capacity:150, label:'pieces used', min:5,  step:5},
+  'TBC-CRIMP-SPADE':  {type:'pack', unit:'pcs',  capacity:150, label:'pieces used', min:5,  step:5},
+  'TBC-CRIMP-EYE':    {type:'pack', unit:'pcs',  capacity:108, label:'pieces used', min:5,  step:5},
+  'B4430315':         {type:'pack', unit:'ties',  capacity:500, label:'ties used',   min:10, step:10},
+  'B4430316':         {type:'pack', unit:'ties',  capacity:500, label:'ties used',   min:10, step:10},
+  'B4430317':         {type:'pack', unit:'ties',  capacity:500, label:'ties used',   min:10, step:10},
+  'B0920121':         {type:'pack', unit:'screws',capacity:100, label:'screws used', min:10, step:10},
+  'B0920438':         {type:'pack', unit:'screws',capacity:100, label:'screws used', min:10, step:10},
+  'B0920156':         {type:'pack', unit:'screws',capacity:100, label:'screws used', min:10, step:10},
+  'B0920413':         {type:'pack', unit:'screws',capacity:100, label:'screws used', min:10, step:10},
   // Containers/bottles — log use, mark finished or still have stock
   'AF-RT100S':        {type:'container', unit:'bottle', label:'Used from bottle'},
   'AF-RT390G':        {type:'container', unit:'bottle', label:'Used from bottle'},
@@ -1021,7 +1030,21 @@ function openSheet(item){
     document.getElementById('ui-pack').style.display='block';
     document.getElementById('lbl-pack').textContent=it.label;
     document.getElementById('pack-unit').textContent=it.unit;
-    document.getElementById('pack-input').value='';
+    // Set min and step for pack items with minimums
+    const packMin  = it.min  || 1;
+    const packStep = it.step || 1;
+    const packInput = document.getElementById('pack-input');
+    packInput.min   = packMin;
+    packInput.step  = packStep;
+    packInput.value = packMin;  // pre-fill with minimum
+    // Show min/step hint
+    const packHint = document.getElementById('pack-hint');
+    if(it.min){
+      packHint.textContent = `Min: ${packMin} · Increments of ${packStep}`;
+      packHint.style.display='block';
+    } else {
+      packHint.style.display='none';
+    }
     setPackStatus('have');
   } else {
     document.getElementById('ui-ea').style.display='block';
@@ -1079,6 +1102,16 @@ function stepQ(d){
   document.getElementById('qv').textContent=A.qty;
   document.getElementById('sl-after').textContent=`${A.qty} of ${A.item.curr} used`;
   document.getElementById('sl-max').textContent=`Max: ${A.item.curr}`;
+}
+
+function stepPack(d){
+  const it = getItemType(A.item.pn);
+  const step = it.step || 1;
+  const min  = it.min  || 1;
+  const inp  = document.getElementById('pack-input');
+  const cur  = parseFloat(inp.value) || min;
+  const next = Math.max(min, cur + (d * step));
+  inp.value  = next;
 }
 
 function setPackStatus(s){
