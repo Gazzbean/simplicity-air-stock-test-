@@ -864,7 +864,7 @@ async function fetchSheet(range){
   const{sheetId,apiKey}=A.cfg;
   if(!sheetId||!apiKey)return null;
   try{
-    const url=`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(range)}?key=${apiKey}`;
+    const url=`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(range)}?valueRenderOption=FORMATTED_VALUE&key=${apiKey}`;
     const r=await fetch(url);
     if(!r.ok)return null;
     return (await r.json()).values||[];
@@ -892,7 +892,7 @@ function parseRows(rows){
 async function loadStock(){
   const list=document.getElementById('slist');
   list.innerHTML='<div class="empty"><div class="spin"></div><div class="et">Loading stock…</div></div>';
-  const rows=await fetchSheet(`'Van ${A.vanIdx} Stock'!A3:H100`);
+  const rows=await fetchSheet(`'Van ${A.vanIdx} Stock'!A4:H100`);
   A.stock=parseRows(rows||DEMO);
   buildChips();renderStock(A.stock);
 }
@@ -986,7 +986,7 @@ async function confirmUsage(){
     await writeSheet('append',"'Usage Log'!A:M",[[dateStr,vanLabel,A.techName,jobNum,'',item.pn,item.desc,qty,'','','Yes','',notes]]);
     const rowIdx=A.stock.findIndex(i=>i.pn===item.pn);
     if(rowIdx>=0){
-      await writeSheet('update',`'Van ${A.vanIdx} Stock'!F${rowIdx+3}`,[[Math.max(0,item.curr-qty)]]);
+      await writeSheet('update',`'Van ${A.vanIdx} Stock'!F${rowIdx+4}`,[[Math.max(0,item.curr-qty)]]);
       A.stock[rowIdx].curr=Math.max(0,item.curr-qty);
       const nc=A.stock[rowIdx].curr;
       A.stock[rowIdx].status=nc===0?'ror':nc<item.std?'low':'full';
@@ -1004,7 +1004,7 @@ async function loadDash(){
   document.getElementById('dg').innerHTML='<div style="grid-column:1/-1;display:flex;justify-content:center;padding:24px"><div class="spin"></div></div>';
   const vanData=[];
   for(let v=1;v<=4;v++){
-    const rows=await fetchSheet(`'Van ${v} Stock'!A3:H100`);
+    const rows=await fetchSheet(`'Van ${v} Stock'!A4:H100`);
     vanData.push(parseRows(rows||DEMO));
   }
   const rors=new Set(),lows=new Set();
@@ -1048,7 +1048,7 @@ async function loadReorder(){
   list.innerHTML='<div class="empty"><div class="spin"></div><div class="et">Checking levels…</div></div>';
   const rorMap={};
   for(let v=1;v<=4;v++){
-    const rows=await fetchSheet(`'Van ${v} Stock'!A3:H100`);
+    const rows=await fetchSheet(`'Van ${v} Stock'!A4:H100`);
     parseRows(rows||DEMO).filter(i=>i.status==='ror').forEach(i=>{
       if(!rorMap[i.pn])rorMap[i.pn]={...i,vans:[]};
       rorMap[i.pn].vans.push(getVanRego(v));
@@ -1092,7 +1092,7 @@ async function doOrder(i,pn,desc){
 async function loadLog(){
   const w=document.getElementById('log-items');
   w.innerHTML='<div class="empty"><div class="spin"></div></div>';
-  const rows=await fetchSheet("'Usage Log'!A3:M40");
+  const rows=await fetchSheet("'Usage Log'!A2:M40");
   if(!rows||!rows.filter(r=>r[0]).length){
     w.innerHTML='<div class="empty"><div class="ei">📋</div><div class="et">No entries yet.<br>Log a part from the Stock tab.</div></div>';
     return;
