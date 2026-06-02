@@ -1320,8 +1320,8 @@ async function confirmUsage(){
     }
 
     closeSheet();filterS();
-    // Auto-refresh log if on log page
-    if(A.page==='log') setTimeout(()=>loadLog(), 500);
+    // Auto-refresh log after successful write
+    if(A.page==='log') setTimeout(()=>loadLog(), 1500);
     const unitLabel=it.type==='kg'||it.type==='m'
       ? `${logQty}${logUnit}`
       : `${logQty}×`;
@@ -1425,16 +1425,16 @@ async function doOrder(i,pn,desc){
 async function loadLog(){
   const w=document.getElementById('log-items');
   w.innerHTML='<div class="empty"><div class="spin"></div></div>';
-  const rows=await fetchSheet("'Usage Log'!A3:O100");
-  console.log('loadLog rows:', rows?rows.length:'null', rows?JSON.stringify(rows.slice(0,2)):'');
-  // Filter: must have date (col A) and job number (col D index 3)
-  // Don't require col D - some restocks may not have job numbers
-  const validRows = rows ? rows.filter(r=>r[0]&&r[0]!=='Date'&&String(r[0]).trim()!=='') : [];
-  console.log('loadLog validRows:', validRows.length);
+  // Read a large range to capture all entries regardless of where appendRow put them
+  const rows=await fetchSheet("'Usage Log'!A3:O3000");
+  // Filter to only rows with actual data (date in col A)
+  const validRows = rows ? rows.filter(r=>r[0]&&String(r[0]).trim()!==''&&r[0]!=='Date') : [];
+  console.log('loadLog: total rows=',rows?rows.length:0,' valid=',validRows.length);
   if(!validRows.length){
     w.innerHTML='<div class="empty"><div class="ei">📋</div><div class="et">No entries yet.<br>Log a part from the Stock tab.</div></div>';
     return;
   }
+  // Show most recent 20 entries (last in sheet = most recent)
   w.innerHTML=validRows.slice(-20).reverse().map(r=>{
     const qty=r[7]||1, unit=r[8]||'ea';
     const qtyLabel=(unit==='ea'||unit==='kit')?`${qty}×`:`${qty} ${unit}`;
