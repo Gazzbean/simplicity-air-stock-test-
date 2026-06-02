@@ -879,9 +879,53 @@ async function fetchSheet(range){
 
 async function writeSheet(action,range,values){
   const{scriptUrl}=A.cfg;
-  if(!scriptUrl)return;
-  try{await fetch(scriptUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,range,values})});}
-  catch(e){console.warn('Write failed:',e);}
+  if(!scriptUrl){
+    console.warn('No Apps Script URL — writes disabled');
+    showToast('Apps Script URL not set in Settings','err');
+    return {ok:false};
+  }
+  try{
+    // Send as text/plain to avoid CORS preflight — Apps Script accepts this
+    const res=await fetch(scriptUrl,{
+      method:'POST',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body:JSON.stringify({action,range,values}),
+    });
+    // Apps Script always returns 200 even for errors
+    const text=await res.text();
+    try{
+      const result=JSON.parse(text);
+      if(!result.ok) console.error('writeSheet error:',result.error,'for',action,range);
+      return result;
+    } catch(e){
+      // Response not JSON — still likely succeeded (no-cors opaque)
+      console.log('writeSheet sent (opaque response)');
+      return {ok:true};
+    }
+  } catch(e){
+    console.error('writeSheet failed:',e);
+    showToast('Write failed — check Apps Script URL in Settings','err');
+    return {ok:false,error:e.message};
+  }
+}
+
+// ── Test the Apps Script connection ──────────────────────────────────────
+async function testScriptConnection(){
+  const{scriptUrl}=A.cfg;
+  if(!scriptUrl){showToast('No Apps Script URL in Settings','err');return;}
+  try{
+    const res=await fetch(scriptUrl,{mode:'cors'});
+    const data=await res.json();
+    if(data.ok){
+      showToast(`✓ Script connected · ${data.tabs?.length||'?'} tabs found`,'ok');
+      console.log('Script health check:',data);
+    } else {
+      showToast('Script error: '+data.error,'err');
+    }
+  } catch(e){
+    showToast('Could not reach Apps Script — check URL','err');
+    console.error('Script connection test failed:',e);
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -986,6 +1030,17 @@ const ITEM_TYPES = {
   'AF-AA5M':          {type:'container', unit:'tube',   label:'Used from tube'},
   'AF-P7424':         {type:'container', unit:'stick',  label:'Sticks used'},
   'AF-EF4516':        {type:'container', unit:'stick',  label:'Sticks used'},
+  // Brazing gases — whole cylinder/cartridge but log qty used for billing
+  // Nitrogen: log cubic metres or whole cylinder (partial purging use)
+  'A2800074':         {type:'container', unit:'cylinder', label:'Cylinders used'},
+  // Oxygen & MAPP — small cartridges, typically used whole per job
+  'AF-1811322':       {type:'container', unit:'cylinder', label:'Cylinders used'},
+  'AF-MAPP':          {type:'container', unit:'cartridge',label:'Cartridges used'},
+  // Solder rods — log sticks used (whole sticks, typically 1-3 per joint)
+  // Already covered above as stick type
+  // Heatshrink — sold as 1.2m lengths, log whole lengths used
+  'AF-XDW20BK':       {type:'container', unit:'length', label:'Lengths used (1.2m ea)'},
+  'AF-XDW13BK':       {type:'container', unit:'length', label:'Lengths used (1.2m ea)'},
 };
 
 function getItemType(pn){ return ITEM_TYPES[pn]||{type:'ea',unit:'ea',label:'Qty used'}; }
@@ -1404,7 +1459,8 @@ function renderSettings(){
         <div class="cfg-card">
           <label>Apps Script URL (write)</label>
           <input type="text" id="c-scr" value="${A.cfg.scriptUrl||''}" placeholder="https://script.google.com/macros/s/…/exec">
-          <div class="cfg-note">Deploy google-apps-script.js as a Web App. Paste URL here to enable stock writes.</div>
+          <div class="cfg-note">Deploy google-apps-script.js as a Web App (Execute as: Me, Anyone). Paste URL here.</div>
+          <button onclick="testScriptConnection()" style="margin-top:8px;width:100%;padding:8px;background:var(--surf2);border:1.5px solid var(--acc);border-radius:var(--rs);color:var(--acc);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer">🔌 Test Connection</button>
         </div>
       </div>
       <div class="cfg-sec">
