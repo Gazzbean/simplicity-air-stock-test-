@@ -9,6 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="Simplicity Air">
 <meta name="theme-color" content="#0e1230">
 <link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/x-icon" href="favicon.ico">
 <title>Simplicity Air – Stock Control</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -1157,6 +1158,7 @@ function openSheet(item){
   document.getElementById('ov').classList.add('on');
   document.getElementById('bsh').classList.add('on');
   setTimeout(()=>document.getElementById('sm8-job').focus(),380);
+  console.log('openSheet called for:', item.pn, '| A.item set:', !!A.item);
 }
 
 function updateMainBar(item){
@@ -1230,11 +1232,14 @@ function setPackStatus(s){
 }
 
 async function confirmUsage(){
+  console.log('=== confirmUsage called ===');
   const item=A.item;
   const it=getItemType(item.pn);
+  console.log('item:', item?.pn, 'type:', it?.type);
   const jobNum=document.getElementById('sm8-job').value.trim();
   const notes=document.getElementById('u-notes').value.trim();
   const btn=document.getElementById('btn-ok');
+  console.log('jobNum:', jobNum, 'scriptUrl:', A.cfg.scriptUrl?'SET':'MISSING');
   if(!jobNum){showToast('Enter a ServiceM8 job number','err');return;}
 
   // Determine qty/amount and whether to decrement stock
@@ -1283,8 +1288,11 @@ async function confirmUsage(){
     const packStatusVal = (it.type==='pack'||it.type==='container')
       ? (_packStatus==='done'?'Pack/container finished':'Still have stock')
       : 'N/A';
-    await writeSheet('append',"'Usage Log'!A:O",
+    console.log('About to write to Usage Log...');
+    console.log('Values:', [dateStr,vanLabel,A.techName,jobNum,item.pn,logQty,logUnit]);
+    const appendResult = await writeSheet('append',"'Usage Log'!A:O",
       [[dateStr,vanLabel,A.techName,jobNum,'',item.pn,logDesc,logQty,logUnit,'','','Yes','',packStatusVal,notes]]);
+    console.log('Append result:', JSON.stringify(appendResult));
 
     const rowIdx=A.stock.findIndex(i=>i.pn===item.pn);
     if(rowIdx>=0){
