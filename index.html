@@ -375,8 +375,15 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--tx);overflow:h
         <span class="si-icon">🔍</span>
         <input class="si" type="search" placeholder="Search parts…" id="s-inp" oninput="filterS()">
       </div>
+      <div id="stock-tally" style="display:flex;gap:10px;margin-top:8px;font-size:11px;font-weight:600;font-family:'DM Mono',monospace"></div>
     </div>
     <div class="chips" id="chips"></div>
+  <div id="stock-summary" style="display:none;padding:6px 14px;background:var(--bg2);border-bottom:1px solid rgba(255,255,255,.07);font-size:11px;color:var(--tx2);flex-wrap:wrap;gap:12px;align-items:center">
+    <span id="sum-total" style="font-weight:600;color:var(--tx)"></span>
+    <span id="sum-ror"   style="color:var(--red);font-weight:600"></span>
+    <span id="sum-low"   style="color:var(--amb);font-weight:600"></span>
+    <span id="sum-full"  style="color:var(--grn);font-weight:600"></span>
+  </div>
     <div class="slist scroll" id="slist">
       <div class="empty"><div class="spin"></div><div class="et">Loading stock…</div></div>
     </div>
@@ -982,20 +989,37 @@ async function loadStock(){
   list.innerHTML='<div class="empty"><div class="spin"></div><div class="et">Loading stock…</div></div>';
   const rows=await fetchSheet(`'Van ${A.vanIdx} Stock'!A4:H100`);
   if(!rows){
-    // No config or fetch failed — show demo data with notice
     A.stock=parseRows(DEMO);
     list.innerHTML='<div style="margin:10px 14px;padding:10px 12px;background:rgba(255,176,32,.1);border:1px solid var(--amb);border-radius:var(--rs);font-size:12px;color:var(--amb)">⚠ Showing demo data — check Google Sheets settings</div>'+list.innerHTML;
   } else {
     A.stock=parseRows(rows);
   }
   buildChips();renderStock(A.stock);
+  // Update header with part count
+  const rorCount = A.stock.filter(i=>i.status==='ror').length;
+  const lowCount = A.stock.filter(i=>i.status==='low').length;
+  const hdrTitle = document.getElementById('hdr-title');
+  if(hdrTitle) hdrTitle.textContent = (A.vanRego||'Van '+A.vanIdx)+' Stock';
+  // Show count badge
+  const badge = document.getElementById('hdr-badge-count');
+  if(badge){
+    badge.textContent = A.stock.length + ' parts';
+    badge.style.display = 'inline-block';
+  }
 }
 
 function buildChips(){
   const cats=['All',...new Set(A.stock.map(i=>i.cat).filter(Boolean))];
-  document.getElementById('chips').innerHTML=cats.map(c=>
-    `<div class="chip ${c===A.cat?'on':''}" onclick="setCat('${c}')">${c}</div>`
-  ).join('');
+  document.getElementById('chips').innerHTML=cats.map(c=>{
+    const count = c==='All' ? A.stock.length : A.stock.filter(i=>i.cat===c).length;
+    const rors  = c==='All'
+      ? A.stock.filter(i=>i.status==='ror').length
+      : A.stock.filter(i=>i.cat===c&&i.status==='ror').length;
+    const badge = rors > 0
+      ? `<span style="background:var(--red);color:#fff;border-radius:8px;font-size:9px;padding:1px 5px;margin-left:4px;font-weight:700">${rors}</span>`
+      : `<span style="opacity:.55;font-size:10px;margin-left:3px">${count}</span>`;
+    return `<div class="chip ${c===A.cat?'on':''}" onclick="setCat('${c}')">${c}${badge}</div>`;
+  }).join('');
 }
 function setCat(c){A.cat=c;buildChips();filterS();}
 function filterS(){
@@ -1008,6 +1032,19 @@ function filterS(){
 }
 function renderStock(items){
   const list=document.getElementById('slist');
+  // Update tally
+  const tally=document.getElementById('stock-tally');
+  if(tally){
+    const total = A.stock.length;
+    const reorder = A.stock.filter(i=>i.status==='ror').length;
+    const low     = A.stock.filter(i=>i.status==='low').length;
+    const full    = A.stock.filter(i=>i.status==='full').length;
+    tally.innerHTML=
+      `<span style="color:var(--tx2)">${items.length===total?total:items.length+' of '+total} parts</span>`+
+      (reorder?`<span style="color:var(--red)">· ${reorder} ⚠ reorder</span>`:'')+
+      (low    ?`<span style="color:var(--amb)">· ${low} ▼ low</span>`:'')+
+      (full   ?`<span style="color:var(--grn)">· ${full} ✓ ok</span>`:'');
+  }
   if(!items.length){list.innerHTML='<div class="empty"><div class="ei">🔍</div><div class="et">No parts found</div></div>';return;}
   const ord={ror:0,low:1,full:2};
   const sorted=[...items].sort((a,b)=>ord[a.status]-ord[b.status]||(a.cat||'').localeCompare(b.cat||''));
@@ -1029,6 +1066,19 @@ function renderStock(items){
     </div>`;
   });
   list.innerHTML=html;
+  // Update summary bar
+  const sumBar = document.getElementById('stock-summary');
+  if(sumBar && A.stock.length){
+    const all  = A.stock.length;
+    const ror  = A.stock.filter(i=>i.status==='ror').length;
+    const low  = A.stock.filter(i=>i.status==='low').length;
+    const full = A.stock.filter(i=>i.status==='full').length;
+    document.getElementById('sum-total').textContent = all + ' parts total';
+    document.getElementById('sum-ror').textContent   = ror  ? '⚠ '+ror+' reorder'  : '';
+    document.getElementById('sum-low').textContent   = low  ? '▼ '+low+' low'       : '';
+    document.getElementById('sum-full').textContent  = full ? '✓ '+full+' stocked'  : '';
+    sumBar.style.display = 'flex';
+  }
 }
 
 // ═══════════════════════════════════════════════════════
