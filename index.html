@@ -592,9 +592,6 @@ async function saveCfg(){
   const sm8=val('c-sm8');      if(sm8!==null)       A.cfg.sm8Key=sm8;
   localStorage.setItem('sa_cfg',JSON.stringify(A.cfg));
   // Log what was saved (for debugging)
-  console.log('Config saved — scriptUrl:', A.cfg.scriptUrl?A.cfg.scriptUrl.substring(0,40)+'...':'(not set)');
-  console.log('Config saved — sheetId:', A.cfg.sheetId||'(not set)');
-  console.log('Config saved — apiKey:', A.cfg.apiKey?A.cfg.apiKey.substring(0,10)+'...':'(not set)');
   showToast('✓ Settings saved','ok');
   buildVanSelector();
 }
@@ -903,7 +900,6 @@ async function fetchSheet(range){
       console.error('fetchSheet API error:',data.error.message,'for range:',range);
       return null;
     }
-    console.log('fetchSheet ✓',range,'→',(data.values||[]).length,'rows');
     return data.values||[];
   }catch(e){
     console.error('fetchSheet exception:',e.message,'for range:',range);
@@ -918,7 +914,6 @@ async function writeSheet(action,range,values){
     showToast('Apps Script URL not configured in Settings','err');
     return {ok:false};
   }
-  console.log('writeSheet →', action, range);
   try{
     const res = await fetch(scriptUrl, {
       method: 'POST',
@@ -941,7 +936,6 @@ async function writeSheet(action,range,values){
       return result;
     } catch(e) {
       // Can't parse JSON — script still ran, treat as success
-      console.log('writeSheet: non-JSON response (ok)', text.substring(0,100));
       return {ok:true};
     }
   } catch(e) {
@@ -963,7 +957,6 @@ async function testScriptConnection(){
       const tabs=data.tabs?data.tabs.length:'?';
       const ver=data.message?(' · '+data.message):'';
       showToast('✓ Connected · '+tabs+' tabs'+ver,'ok');
-      console.log('Script health check:',data);
     } else {
       showToast('Script error: '+(data.error||'unknown'),'err');
     }
@@ -1208,7 +1201,6 @@ function openSheet(item){
   document.getElementById('ov').classList.add('on');
   document.getElementById('bsh').classList.add('on');
   setTimeout(()=>document.getElementById('sm8-job').focus(),380);
-  console.log('openSheet called for:', item.pn, '| A.item set:', !!A.item);
 }
 
 function updateMainBar(item){
@@ -1282,14 +1274,11 @@ function setPackStatus(s){
 }
 
 async function confirmUsage(){
-  console.log('=== confirmUsage called ===');
   const item=A.item;
   const it=getItemType(item.pn);
-  console.log('item:', item?.pn, 'type:', it?.type);
   const jobNum=document.getElementById('sm8-job').value.trim();
   const notes=document.getElementById('u-notes').value.trim();
   const btn=document.getElementById('btn-ok');
-  console.log('jobNum:', jobNum, 'scriptUrl:', A.cfg.scriptUrl?'SET':'MISSING');
   if(!jobNum){showToast('Enter a ServiceM8 job number','err');return;}
 
   // Determine qty/amount and whether to decrement stock
@@ -1338,35 +1327,25 @@ async function confirmUsage(){
     const packStatusVal = (it.type==='pack'||it.type==='container')
       ? (_packStatus==='done'?'Pack/container finished':'Still have stock')
       : 'N/A';
-    console.log('About to write to Usage Log...');
-    console.log('Values:', [dateStr,vanLabel,A.techName,jobNum,item.pn,logQty,logUnit]);
     const appendResult = await writeSheet('append',"'Usage Log'!A:O",
       [[dateStr,vanLabel,A.techName,jobNum,'',item.pn,logDesc,logQty,logUnit,'','','Yes','',packStatusVal,notes]]);
-    console.log('Append result:', JSON.stringify(appendResult));
 
     const rowIdx=A.stock.findIndex(i=>i.pn===item.pn);
-    console.log('rowIdx:', rowIdx, '| decrementStock:', decrementStock, '| packStatus:', _packStatus, '| newStockCount:', newStockCount);
     if(rowIdx>=0){
       const sheetRow=rowIdx+4;
-      console.log('sheetRow:', sheetRow, '| van:', A.vanIdx);
       // Always update balance col N for kg/m items
       if(it.type==='kg'||it.type==='m'){
         const newBal=getBalance(item);
-        console.log('Updating balance col N to:', newBal.toFixed(1));
         await writeSheet('update',`'Van ${A.vanIdx} Stock'!N${sheetRow}`,[[newBal.toFixed(1)]]);
       }
       // Decrement stock count col F when needed
       if(decrementStock){
-        console.log('Decrementing stock col F to:', newStockCount);
         const updateResult = await writeSheet('update',`'Van ${A.vanIdx} Stock'!F${sheetRow}`,[[newStockCount]]);
-        console.log('Update result:', JSON.stringify(updateResult));
         A.stock[rowIdx].curr=newStockCount;
         A.stock[rowIdx].status=newStockCount===0?'ror':newStockCount<item.std?'low':'full';
       } else {
-        console.log('Stock NOT decremented — decrementStock=false (still have stock selected or kg/m item not at boundary)');
       }
     } else {
-      console.log('WARNING: rowIdx not found for pn:', item.pn, '— stock not updated');
     }
 
     closeSheet();filterS();
@@ -1479,7 +1458,6 @@ async function loadLog(){
   const rows=await fetchSheet("'Usage Log'!A3:O3000");
   // Filter to only rows with actual data (date in col A)
   const validRows = rows ? rows.filter(r=>r[0]&&String(r[0]).trim()!==''&&r[0]!=='Date') : [];
-  console.log('loadLog: total rows=',rows?rows.length:0,' valid=',validRows.length);
   if(!validRows.length){
     w.innerHTML='<div class="empty"><div class="ei">📋</div><div class="et">No entries yet.<br>Log a part from the Stock tab.</div></div>';
     return;
@@ -1508,7 +1486,6 @@ function showToast(msg,type=''){
   t.textContent=msg;t.className='toast show '+(type||'');
   clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('show'),3200);
 }
-
 
 // ═══════════════════════════════════════════════════════
 //  SETTINGS — role-based rendering
@@ -1616,18 +1593,29 @@ async function loadRestockItems(){
   const items=parseRows(rows||[]);
   if(!items.length){wrap.innerHTML='<div class="empty"><div class="ei">⚠️</div><div class="et">Could not load van stock</div></div>';return;}
   wrap.innerHTML='<div style="font-size:11px;color:var(--tx2);padding:0 0 8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Enter qty to transfer from workshop to van</div>'+
-    items.map((item,i)=>`
-    <div class="cfg-card" style="margin-bottom:8px;display:flex;align-items:center;gap:10px">
+    items.map((item,i)=>{
+      // Colour scheme matches stock list: red=reorder, amber=low, green=full
+      const stCol  = item.status==='ror'?'var(--red)':item.status==='low'?'var(--amb)':'var(--grn)';
+      const bgCol  = item.status==='ror'?'rgba(255,68,68,.08)':item.status==='low'?'rgba(255,176,32,.08)':'rgba(0,217,126,.05)';
+      const bdCol  = item.status==='ror'?'rgba(255,68,68,.3)':item.status==='low'?'rgba(255,176,32,.3)':'rgba(0,217,126,.15)';
+      const stIcon = item.status==='ror'?'⚠ ':item.status==='low'?'▼ ':'✓ ';
+      const stTxt  = item.status==='ror'?'REORDER':item.status==='low'?'LOW':'FULL';
+      return `
+    <div style="background:${bgCol};border:1px solid ${bdCol};border-radius:var(--rs);padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.desc}</div>
-        <div style="font-size:10px;color:var(--tx2);font-family:monospace;margin-top:2px">${item.pn} · Current: <strong style="color:${item.status==='ror'?'var(--red)':item.status==='low'?'var(--amb)':'var(--grn)'}">${item.curr}</strong> / Std: ${item.std}</div>
+        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--tx)">${item.desc}</div>
+        <div style="font-size:10px;font-family:monospace;margin-top:3px;display:flex;gap:8px;align-items:center">
+          <span style="color:${stCol};font-weight:700">${stIcon}${stTxt}</span>
+          <span style="color:var(--tx2)">Current: <strong style="color:${stCol}">${item.curr}</strong> / Std: ${item.std}</span>
+          <span style="color:var(--tx3)">${item.bin}</span>
+        </div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
         <button class="sbtn" style="width:32px;height:32px;font-size:16px" onclick="adjRestock(${i},-1)">−</button>
         <div style="font-size:18px;font-weight:700;font-family:monospace;min-width:28px;text-align:center;color:var(--acc)" id="rst-qty-${i}">0</div>
         <button class="sbtn" style="width:32px;height:32px;font-size:16px" onclick="adjRestock(${i},1)">+</button>
       </div>
-    </div>`).join('')+
+    </div>`;}).join('')+
     `<button class="btn-save" style="margin-top:8px" onclick="submitRestock(${vanIdx})">✓ Confirm Restock</button>`;
   window._restockItems=items;window._restockQtys=items.map(()=>0);
 }
@@ -1725,7 +1713,6 @@ async function saveLevels(vanIdx){
   }
   showToast(`✓ Reorder levels updated for ${count} items`,'ok');
 }
-
 
 window.addEventListener('DOMContentLoaded',()=>{
   loadCfg();
