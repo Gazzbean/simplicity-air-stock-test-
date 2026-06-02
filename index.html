@@ -562,20 +562,30 @@ function loadCfg(){
 }
 
 async function saveCfg(){
-  // Helper to safely read a field that may not exist in tech view
-  const val=id=>{const el=document.getElementById(id);return el?el.value.trim():'';};
+  // Read field safely — returns '' if element doesn't exist (tech view)
+  const val=id=>{const el=document.getElementById(id);return el?el.value.trim():null;};
   const newPw=val('c-pw');
-  if(newPw){A.cfg.pwHash=await hash(newPw);const el=document.getElementById('c-pw');if(el)el.value='';}
-  if(!A.cfg.pwHash)A.cfg.pwHash=await hash('simplicity');
-  if(val('c-v1'))A.cfg.v1=val('c-v1').toUpperCase();
-  if(val('c-v2'))A.cfg.v2=val('c-v2').toUpperCase();
-  if(val('c-v3'))A.cfg.v3=val('c-v3').toUpperCase();
-  if(val('c-v4'))A.cfg.v4=val('c-v4').toUpperCase();
-  if(val('c-sid'))A.cfg.sheetId=val('c-sid');
-  if(val('c-akey'))A.cfg.apiKey=val('c-akey');
-  if(val('c-scr'))A.cfg.scriptUrl=val('c-scr');
-  if(val('c-sm8'))A.cfg.sm8Key=val('c-sm8');
+  if(newPw){
+    A.cfg.pwHash=await hash(newPw);
+    const el=document.getElementById('c-pw');
+    if(el)el.value='';
+  }
+  if(!A.cfg.pwHash) A.cfg.pwHash=await hash('simplicity');
+  // Always save all config fields that are present in the DOM
+  // (null means field doesn't exist in current view — don't overwrite stored value)
+  const v1=val('c-v1');  if(v1!==null) A.cfg.v1=v1.toUpperCase();
+  const v2=val('c-v2');  if(v2!==null) A.cfg.v2=v2.toUpperCase();
+  const v3=val('c-v3');  if(v3!==null) A.cfg.v3=v3.toUpperCase();
+  const v4=val('c-v4');  if(v4!==null) A.cfg.v4=v4.toUpperCase();
+  const sid=val('c-sid');      if(sid!==null)       A.cfg.sheetId=sid;
+  const akey=val('c-akey');    if(akey!==null)      A.cfg.apiKey=akey;
+  const scr=val('c-scr');      if(scr!==null)       A.cfg.scriptUrl=scr;
+  const sm8=val('c-sm8');      if(sm8!==null)       A.cfg.sm8Key=sm8;
   localStorage.setItem('sa_cfg',JSON.stringify(A.cfg));
+  // Log what was saved (for debugging)
+  console.log('Config saved — scriptUrl:', A.cfg.scriptUrl?A.cfg.scriptUrl.substring(0,40)+'...':'(not set)');
+  console.log('Config saved — sheetId:', A.cfg.sheetId||'(not set)');
+  console.log('Config saved — apiKey:', A.cfg.apiKey?A.cfg.apiKey.substring(0,10)+'...':'(not set)');
   showToast('✓ Settings saved','ok');
   buildVanSelector();
 }
@@ -868,13 +878,28 @@ const DEMO=[
 
 async function fetchSheet(range){
   const{sheetId,apiKey}=A.cfg;
-  if(!sheetId||!apiKey)return null;
+  if(!sheetId||!apiKey){
+    console.warn('fetchSheet: missing sheetId or apiKey');
+    return null;
+  }
   try{
     const url=`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encodeURIComponent(range)}?valueRenderOption=FORMATTED_VALUE&key=${apiKey}`;
     const r=await fetch(url);
-    if(!r.ok)return null;
-    return (await r.json()).values||[];
-  }catch(e){return null;}
+    if(!r.ok){
+      console.error('fetchSheet HTTP error:',r.status,'for range:',range);
+      return null;
+    }
+    const data=await r.json();
+    if(data.error){
+      console.error('fetchSheet API error:',data.error.message,'for range:',range);
+      return null;
+    }
+    console.log('fetchSheet ✓',range,'→',(data.values||[]).length,'rows');
+    return data.values||[];
+  }catch(e){
+    console.error('fetchSheet exception:',e.message,'for range:',range);
+    return null;
+  }
 }
 
 async function writeSheet(action,range,values){
@@ -884,9 +909,8 @@ async function writeSheet(action,range,values){
     showToast('Apps Script URL not configured in Settings','err');
     return {ok:false};
   }
+  console.log('writeSheet →', action, range);
   try{
-    // Use text/plain content-type — avoids CORS preflight browser check
-    // Apps Script deployed as 'Anyone' accepts this without issues
     const res = await fetch(scriptUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -928,8 +952,8 @@ async function testScriptConnection(){
     const data=JSON.parse(text);
     if(data.ok){
       const tabs=data.tabs?data.tabs.length:'?';
-      const ver=data.message||'';
-      showToast('✓ Connected · '+tabs+' tabs · '+ver,'ok');
+      const ver=data.message?(' · '+data.message):'';
+      showToast('✓ Connected · '+tabs+' tabs'+ver,'ok');
       console.log('Script health check:',data);
     } else {
       showToast('Script error: '+(data.error||'unknown'),'err');
@@ -955,7 +979,13 @@ async function loadStock(){
   const list=document.getElementById('slist');
   list.innerHTML='<div class="empty"><div class="spin"></div><div class="et">Loading stock…</div></div>';
   const rows=await fetchSheet(`'Van ${A.vanIdx} Stock'!A4:H100`);
-  A.stock=parseRows(rows||DEMO);
+  if(!rows){
+    // No config or fetch failed — show demo data with notice
+    A.stock=parseRows(DEMO);
+    list.innerHTML='<div style="margin:10px 14px;padding:10px 12px;background:rgba(255,176,32,.1);border:1px solid var(--amb);border-radius:var(--rs);font-size:12px;color:var(--amb)">⚠ Showing demo data — check Google Sheets settings</div>'+list.innerHTML;
+  } else {
+    A.stock=parseRows(rows);
+  }
   buildChips();renderStock(A.stock);
 }
 
@@ -1375,12 +1405,12 @@ async function doOrder(i,pn,desc){
 async function loadLog(){
   const w=document.getElementById('log-items');
   w.innerHTML='<div class="empty"><div class="spin"></div></div>';
-  const rows=await fetchSheet("'Usage Log'!A2:M40");
-  if(!rows||!rows.filter(r=>r[0]).length){
+  const rows=await fetchSheet("'Usage Log'!A3:O100");
+  if(!rows||!rows.filter(r=>r[0]&&r[0]!=='Date').length){
     w.innerHTML='<div class="empty"><div class="ei">📋</div><div class="et">No entries yet.<br>Log a part from the Stock tab.</div></div>';
     return;
   }
-  w.innerHTML=rows.filter(r=>r[0]&&r[3]).slice(-20).reverse().map(r=>{
+  w.innerHTML=rows.filter(r=>r[0]&&r[0]!=='Date'&&r[3]).slice(-20).reverse().map(r=>{
     const qty=r[7]||1, unit=r[8]||'ea';
     const qtyLabel=(unit==='ea'||unit==='kit')?`${qty}×`:`${qty} ${unit}`;
     const packSt=r[13]&&r[13]!=='N/A'?` · ${r[13]}`:'';
