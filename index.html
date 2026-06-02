@@ -1295,22 +1295,33 @@ async function confirmUsage(){
     console.log('Append result:', JSON.stringify(appendResult));
 
     const rowIdx=A.stock.findIndex(i=>i.pn===item.pn);
+    console.log('rowIdx:', rowIdx, '| decrementStock:', decrementStock, '| packStatus:', _packStatus, '| newStockCount:', newStockCount);
     if(rowIdx>=0){
       const sheetRow=rowIdx+4;
+      console.log('sheetRow:', sheetRow, '| van:', A.vanIdx);
       // Always update balance col N for kg/m items
       if(it.type==='kg'||it.type==='m'){
         const newBal=getBalance(item);
+        console.log('Updating balance col N to:', newBal.toFixed(1));
         await writeSheet('update',`'Van ${A.vanIdx} Stock'!N${sheetRow}`,[[newBal.toFixed(1)]]);
       }
       // Decrement stock count col F when needed
       if(decrementStock){
-        await writeSheet('update',`'Van ${A.vanIdx} Stock'!F${sheetRow}`,[[newStockCount]]);
+        console.log('Decrementing stock col F to:', newStockCount);
+        const updateResult = await writeSheet('update',`'Van ${A.vanIdx} Stock'!F${sheetRow}`,[[newStockCount]]);
+        console.log('Update result:', JSON.stringify(updateResult));
         A.stock[rowIdx].curr=newStockCount;
         A.stock[rowIdx].status=newStockCount===0?'ror':newStockCount<item.std?'low':'full';
+      } else {
+        console.log('Stock NOT decremented — decrementStock=false (still have stock selected or kg/m item not at boundary)');
       }
+    } else {
+      console.log('WARNING: rowIdx not found for pn:', item.pn, '— stock not updated');
     }
 
     closeSheet();filterS();
+    // Auto-refresh log if on log page
+    if(A.page==='log') setTimeout(()=>loadLog(), 500);
     const unitLabel=it.type==='kg'||it.type==='m'
       ? `${logQty}${logUnit}`
       : `${logQty}×`;
@@ -1415,11 +1426,16 @@ async function loadLog(){
   const w=document.getElementById('log-items');
   w.innerHTML='<div class="empty"><div class="spin"></div></div>';
   const rows=await fetchSheet("'Usage Log'!A3:O100");
-  if(!rows||!rows.filter(r=>r[0]&&r[0]!=='Date').length){
+  console.log('loadLog rows:', rows?rows.length:'null', rows?JSON.stringify(rows.slice(0,2)):'');
+  // Filter: must have date (col A) and job number (col D index 3)
+  // Don't require col D - some restocks may not have job numbers
+  const validRows = rows ? rows.filter(r=>r[0]&&r[0]!=='Date'&&String(r[0]).trim()!=='') : [];
+  console.log('loadLog validRows:', validRows.length);
+  if(!validRows.length){
     w.innerHTML='<div class="empty"><div class="ei">📋</div><div class="et">No entries yet.<br>Log a part from the Stock tab.</div></div>';
     return;
   }
-  w.innerHTML=rows.filter(r=>r[0]&&r[0]!=='Date'&&r[3]).slice(-20).reverse().map(r=>{
+  w.innerHTML=validRows.slice(-20).reverse().map(r=>{
     const qty=r[7]||1, unit=r[8]||'ea';
     const qtyLabel=(unit==='ea'||unit==='kit')?`${qty}×`:`${qty} ${unit}`;
     const packSt=r[13]&&r[13]!=='N/A'?` · ${r[13]}`:'';
