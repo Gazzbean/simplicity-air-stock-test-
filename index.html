@@ -881,31 +881,40 @@ async function writeSheet(action,range,values){
   const{scriptUrl}=A.cfg;
   if(!scriptUrl){
     console.warn('No Apps Script URL — writes disabled');
-    showToast('Apps Script URL not set in Settings','err');
+    showToast('Apps Script URL not configured in Settings','err');
     return {ok:false};
   }
   try{
-    // Send as text/plain to avoid CORS preflight — Apps Script accepts this
-    const res=await fetch(scriptUrl,{
-      method:'POST',
-      headers:{'Content-Type':'text/plain;charset=utf-8'},
-      body:JSON.stringify({action,range,values}),
+    // Use text/plain content-type — avoids CORS preflight browser check
+    // Apps Script deployed as 'Anyone' accepts this without issues
+    const res = await fetch(scriptUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action, range, values }),
+      redirect: 'follow',
     });
-    // Apps Script always returns 200 even for errors
-    const text=await res.text();
-    try{
-      const result=JSON.parse(text);
-      if(!result.ok) console.error('writeSheet error:',result.error,'for',action,range);
+    if(!res.ok){
+      console.error('writeSheet HTTP error:', res.status);
+      showToast('Sheet error: HTTP '+res.status,'err');
+      return {ok:false};
+    }
+    const text = await res.text();
+    try {
+      const result = JSON.parse(text);
+      if(!result.ok){
+        console.error('writeSheet script error:', result.error, 'for', action, range);
+        showToast('Sheet error: '+result.error,'err');
+      }
       return result;
-    } catch(e){
-      // Response not JSON — still likely succeeded (no-cors opaque)
-      console.log('writeSheet sent (opaque response)');
+    } catch(e) {
+      // Can't parse JSON — script still ran, treat as success
+      console.log('writeSheet: non-JSON response (ok)', text.substring(0,100));
       return {ok:true};
     }
-  } catch(e){
-    console.error('writeSheet failed:',e);
-    showToast('Write failed — check Apps Script URL in Settings','err');
-    return {ok:false,error:e.message};
+  } catch(e) {
+    console.error('writeSheet fetch error:', e.message);
+    showToast('Connection error — check Settings','err');
+    return {ok:false, error:e.message};
   }
 }
 
@@ -914,17 +923,20 @@ async function testScriptConnection(){
   const{scriptUrl}=A.cfg;
   if(!scriptUrl){showToast('No Apps Script URL in Settings','err');return;}
   try{
-    const res=await fetch(scriptUrl,{mode:'cors'});
-    const data=await res.json();
+    const res=await fetch(scriptUrl);
+    const text=await res.text();
+    const data=JSON.parse(text);
     if(data.ok){
-      showToast(`✓ Script connected · ${data.tabs?.length||'?'} tabs found`,'ok');
+      const tabs=data.tabs?data.tabs.length:'?';
+      const ver=data.message||'';
+      showToast('✓ Connected · '+tabs+' tabs · '+ver,'ok');
       console.log('Script health check:',data);
     } else {
-      showToast('Script error: '+data.error,'err');
+      showToast('Script error: '+(data.error||'unknown'),'err');
     }
   } catch(e){
-    showToast('Could not reach Apps Script — check URL','err');
-    console.error('Script connection test failed:',e);
+    showToast('Cannot reach Apps Script — check URL in Settings','err');
+    console.error('Script test failed:',e);
   }
 }
 
