@@ -419,16 +419,29 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--tx);overflow:h
 
   <!-- ── MANAGER: VAN RESTOCK ── -->
   <div class="page" id="pg-restock">
-    <div class="scroll" style="flex:1;padding:14px">
-      <div class="info-b">📦 Record stock transferred from the workshop to a van. This updates the van's current quantity in the spreadsheet.</div>
-      <div class="cfg-sec" style="padding-top:8px">
-        <div class="cfg-title">Select Van to Restock</div>
-        <div class="cfg-card">
-          <select id="restock-van-sel" onchange="loadRestockItems()"></select>
-        </div>
+    <!-- Van selector + search bar -->
+    <div style="background:var(--bg2);border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;padding:10px 14px;display:flex;gap:8px;align-items:center">
+      <select id="restock-van-sel" onchange="loadRestockItems()" style="flex:1;padding:8px 10px;background:var(--surf);border:1.5px solid var(--surf2);border-radius:var(--rs);color:var(--tx);font-size:13px;font-weight:600;-webkit-appearance:none"></select>
+    </div>
+    <div class="sbar" style="padding:8px 14px">
+      <div class="si-wrap">
+        <span class="si-icon">🔍</span>
+        <input class="si" type="search" id="restock-search" placeholder="Search parts…" oninput="filterRestock()">
       </div>
-      <div id="restock-items" style="margin-top:4px"></div>
-      <div style="height:20px"></div>
+    </div>
+    <div class="chips" id="restock-chips"></div>
+    <!-- Summary bar -->
+    <div id="restock-summary" style="display:none;padding:6px 14px;background:var(--bg2);border-bottom:1px solid rgba(255,255,255,.07);font-size:11px;color:var(--tx2);display:flex;gap:12px;align-items:center">
+      <span id="rst-sum-total" style="font-weight:600;color:var(--tx)"></span>
+      <span id="rst-sum-ror"   style="color:var(--red);font-weight:600"></span>
+      <span id="rst-sum-low"   style="color:var(--amb);font-weight:600"></span>
+      <span id="rst-sum-full"  style="color:var(--grn);font-weight:600"></span>
+    </div>
+    <div class="scroll" style="flex:1;padding:12px 14px 0" id="restock-items">
+      <div class="empty"><div class="spin"></div><div class="et">Loading…</div></div>
+    </div>
+    <div style="padding:12px 14px;border-top:1px solid rgba(255,255,255,.07);flex-shrink:0">
+      <button class="btn-save" id="restock-confirm-btn" style="display:none" onclick="submitRestockAll()">✓ Confirm Restock</button>
     </div>
   </div>
 
@@ -1591,56 +1604,156 @@ async function loadRestockItems(){
   wrap.innerHTML='<div class="empty"><div class="spin"></div><div class="et">Loading…</div></div>';
   const rows=await fetchSheet(`'Van ${vanIdx} Stock'!A4:H100`);
   const items=parseRows(rows||[]);
-  if(!items.length){wrap.innerHTML='<div class="empty"><div class="ei">⚠️</div><div class="et">Could not load van stock</div></div>';return;}
-  wrap.innerHTML='<div style="font-size:11px;color:var(--tx2);padding:0 0 8px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Enter qty to transfer from workshop to van</div>'+
-    items.map((item,i)=>{
-      // Colour scheme matches stock list: red=reorder, amber=low, green=full
-      const stCol  = item.status==='ror'?'var(--red)':item.status==='low'?'var(--amb)':'var(--grn)';
-      const bgCol  = item.status==='ror'?'rgba(255,68,68,.08)':item.status==='low'?'rgba(255,176,32,.08)':'rgba(0,217,126,.05)';
-      const bdCol  = item.status==='ror'?'rgba(255,68,68,.3)':item.status==='low'?'rgba(255,176,32,.3)':'rgba(0,217,126,.15)';
-      const stIcon = item.status==='ror'?'⚠ ':item.status==='low'?'▼ ':'✓ ';
-      const stTxt  = item.status==='ror'?'REORDER':item.status==='low'?'LOW':'FULL';
-      return `
-    <div style="background:${bgCol};border:1px solid ${bdCol};border-radius:var(--rs);padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
+  if(!items.length){
+    wrap.innerHTML='<div class="empty"><div class="ei">⚠️</div><div class="et">Could not load van stock</div></div>';
+    return;
+  }
+  window._restockItems=items;
+  // Pre-fill suggested qty = std - curr (shortfall), 0 if fully stocked
+  window._restockQtys=items.map(i=>Math.max(0,i.std-i.curr));
+  window._restockCat='All';
+  buildRestockChips(items);
+  filterRestock();
+  // Summary bar
+  updateRestockSummary(items);
+}
+
+function buildRestockChips(items){
+  const cats=['All',...new Set(items.map(i=>i.cat).filter(Boolean))];
+  document.getElementById('restock-chips').innerHTML=cats.map(c=>{
+    const count = c==='All'?items.length:items.filter(i=>i.cat===c).length;
+    const rors  = c==='All'
+      ?items.filter(i=>i.status==='ror').length
+      :items.filter(i=>i.cat===c&&i.status==='ror').length;
+    const badge = rors>0
+      ?`<span style="background:var(--red);color:#fff;border-radius:8px;font-size:9px;padding:1px 5px;margin-left:4px;font-weight:700">${rors}</span>`
+      :`<span style="opacity:.55;font-size:10px;margin-left:3px">${count}</span>`;
+    return `<div class="chip ${c===window._restockCat?'on':''}" onclick="setRestockCat('${c}')">${c}${badge}</div>`;
+  }).join('');
+}
+
+function setRestockCat(c){
+  window._restockCat=c;
+  buildRestockChips(window._restockItems);
+  filterRestock();
+}
+
+function filterRestock(){
+  const items=window._restockItems;
+  if(!items) return;
+  const q=(document.getElementById('restock-search')?.value||'').toLowerCase();
+  const cat=window._restockCat||'All';
+  const filtered=items.filter(i=>{
+    const mc=cat==='All'||i.cat===cat;
+    const mt=!q||i.desc.toLowerCase().includes(q)||i.pn.toLowerCase().includes(q);
+    return mc&&mt;
+  });
+  renderRestockItems(filtered);
+  updateRestockSummary(filtered);
+}
+
+function updateRestockSummary(items){
+  const bar=document.getElementById('restock-summary');
+  if(!bar||!items.length) return;
+  const ror=items.filter(i=>i.status==='ror').length;
+  const low=items.filter(i=>i.status==='low').length;
+  const full=items.filter(i=>i.status==='full').length;
+  document.getElementById('rst-sum-total').textContent=items.length+' parts';
+  document.getElementById('rst-sum-ror').textContent=ror?'⚠ '+ror+' reorder':'';
+  document.getElementById('rst-sum-low').textContent=low?'▼ '+low+' low':'';
+  document.getElementById('rst-sum-full').textContent=full?'✓ '+full+' stocked':'';
+  bar.style.display='flex';
+}
+
+function renderRestockItems(filtered){
+  const allItems=window._restockItems;
+  const wrap=document.getElementById('restock-items');
+  if(!filtered||!filtered.length){
+    wrap.innerHTML='<div class="empty"><div class="ei">🔍</div><div class="et">No parts match</div></div>';
+    document.getElementById('restock-confirm-btn').style.display='none';
+    return;
+  }
+  // Sort: reorder first, then low, then full; within group by category
+  const ord={ror:0,low:1,full:2};
+  const sorted=[...filtered].sort((a,b)=>ord[a.status]-ord[b.status]||(a.cat||'').localeCompare(b.cat||''));
+  const slabels={ror:'⚠ Reorder required',low:'▼ Running low',full:'✓ Fully stocked'};
+  let html=''; let lastStatus=null;
+  sorted.forEach(item=>{
+    const i=allItems.indexOf(item);
+    if(item.status!==lastStatus){
+      const stCol=item.status==='ror'?'var(--red)':item.status==='low'?'var(--amb)':'var(--grn)';
+      html+=`<div style="font-size:11px;font-weight:700;color:${stCol};text-transform:uppercase;letter-spacing:.6px;padding:8px 0 6px">${slabels[item.status]}</div>`;
+      lastStatus=item.status;
+    }
+    const stCol  = item.status==='ror'?'var(--red)':item.status==='low'?'var(--amb)':'var(--grn)';
+    const bgCol  = item.status==='ror'?'rgba(255,68,68,.08)':item.status==='low'?'rgba(255,176,32,.08)':'rgba(0,217,126,.05)';
+    const bdCol  = item.status==='ror'?'rgba(255,68,68,.3)':item.status==='low'?'rgba(255,176,32,.3)':'rgba(0,217,126,.15)';
+    const stIcon = item.status==='ror'?'⚠ ':item.status==='low'?'▼ ':'✓ ';
+    const currQty=window._restockQtys[i]||0;
+    html+=`<div style="background:${bgCol};border:1px solid ${bdCol};border-radius:var(--rs);padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--tx)">${item.desc}</div>
-        <div style="font-size:10px;font-family:monospace;margin-top:3px;display:flex;gap:8px;align-items:center">
-          <span style="color:${stCol};font-weight:700">${stIcon}${stTxt}</span>
+        <div style="font-size:10px;font-family:monospace;margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <span style="color:${stCol};font-weight:700">${stIcon}${item.status==='ror'?'REORDER':item.status==='low'?'LOW':'FULL'}</span>
           <span style="color:var(--tx2)">Current: <strong style="color:${stCol}">${item.curr}</strong> / Std: ${item.std}</span>
           <span style="color:var(--tx3)">${item.bin}</span>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
         <button class="sbtn" style="width:32px;height:32px;font-size:16px" onclick="adjRestock(${i},-1)">−</button>
-        <div style="font-size:18px;font-weight:700;font-family:monospace;min-width:28px;text-align:center;color:var(--acc)" id="rst-qty-${i}">0</div>
+        <div style="font-size:18px;font-weight:700;font-family:monospace;min-width:28px;text-align:center;color:${currQty>0?'var(--acc)':'var(--tx3)'}" id="rst-qty-${i}">${currQty}</div>
         <button class="sbtn" style="width:32px;height:32px;font-size:16px" onclick="adjRestock(${i},1)">+</button>
       </div>
-    </div>`;}).join('')+
-    `<button class="btn-save" style="margin-top:8px" onclick="submitRestock(${vanIdx})">✓ Confirm Restock</button>`;
-  window._restockItems=items;window._restockQtys=items.map(()=>0);
+    </div>`;
+  });
+  wrap.innerHTML=html+'<div style="height:8px"></div>';
+  // Show confirm button only if any qty > 0
+  const hasQty=window._restockQtys.some(q=>q>0);
+  const btn=document.getElementById('restock-confirm-btn');
+  if(btn) btn.style.display=hasQty?'block':'none';
 }
 
 function adjRestock(i,d){
-  window._restockQtys[i]=Math.max(0,window._restockQtys[i]+d);
-  document.getElementById('rst-qty-'+i).textContent=window._restockQtys[i];
+  window._restockQtys[i]=Math.max(0,(window._restockQtys[i]||0)+d);
+  const el=document.getElementById('rst-qty-'+i);
+  if(el){
+    el.textContent=window._restockQtys[i];
+    el.style.color=window._restockQtys[i]>0?'var(--acc)':'var(--tx3)';
+  }
+  // Show/hide confirm button based on whether any qty > 0
+  const hasQty=window._restockQtys.some(q=>q>0);
+  const btn=document.getElementById('restock-confirm-btn');
+  if(btn) btn.style.display=hasQty?'block':'none';
 }
 
-async function submitRestock(vanIdx){
-  const qtys=window._restockQtys||[],items=window._restockItems||[];
+async function submitRestockAll(){
+  const vanIdx=document.getElementById('restock-van-sel').value;
+  const vanRego=getVanRego(vanIdx);
+  const qtys=window._restockQtys||[];
+  const items=window._restockItems||[];
   const toUpdate=items.filter((_,i)=>qtys[i]>0);
-  if(!toUpdate.length){showToast('No quantities entered','err');return;}
+  if(!toUpdate.length){showToast('No quantities entered — adjust qtys above','err');return;}
+  const btn=document.getElementById('restock-confirm-btn');
+  if(btn){btn.textContent='Saving…';btn.disabled=true;}
   let count=0;
+  const dateStr=new Date().toLocaleDateString('en-AU');
   for(let i=0;i<items.length;i++){
     if(qtys[i]>0){
-      const newQty=Math.min(items[i].std,items[i].curr+qtys[i]);
+      // Cap at standard qty — can't over-stock
+      const newQty=Math.min(items[i].std, items[i].curr+qtys[i]);
+      // Update van stock current qty (col F)
       await writeSheet('update',`'Van ${vanIdx} Stock'!F${i+4}`,[[newQty]]);
-      const dateStr=new Date().toLocaleDateString('en-AU');
-      await writeSheet('append',"'Usage Log'!A:M",[[dateStr,getVanRego(vanIdx),A.techName,'WORKSHOP RESTOCK','',items[i].pn,items[i].desc,-qtys[i],'','','—','','Workshop restock']]);
+      // Log restock in Usage Log (15 cols A:O)
+      // Use negative qty to show stock IN, not stock OUT
+      await writeSheet('append',"'Usage Log'!A:O",
+        [[dateStr,vanRego,A.techName,'WORKSHOP RESTOCK','',
+          items[i].pn,items[i].desc,qtys[i],'ea','','','N/A','','N/A','Workshop restock → van']]);
       count++;
     }
   }
-  showToast(`✓ ${count} item${count!==1?'s':''} restocked on ${getVanRego(vanIdx)}`,'ok');
-  loadRestockItems();
+  if(btn){btn.textContent='✓ Confirm Restock';btn.disabled=false;}
+  showToast(`✓ ${count} item${count!==1?'s':''} restocked on ${vanRego}`,'ok');
+  setTimeout(()=>loadRestockItems(), 800);
 }
 
 // ═══════════════════════════════════════════════════════
