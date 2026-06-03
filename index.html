@@ -1606,22 +1606,25 @@ function initRestock(){
 }
 
 async function loadRestockItems(){
-  const vanIdx=document.getElementById('restock-van-sel').value;
+  const vanIdx=window._restockVanIdx||document.getElementById('restock-van-sel').value;
   const wrap=document.getElementById('restock-items');
   wrap.innerHTML='<div class="empty"><div class="spin"></div><div class="et">Loading…</div></div>';
   const rows=await fetchSheet(`'Van ${vanIdx} Stock'!A4:H100`);
-  const items=parseRows(rows||[]);
+  // Fall back to DEMO if fetch fails (same as tech stock list)
+  const items=parseRows(rows||DEMO);
   if(!items.length){
-    wrap.innerHTML='<div class="empty"><div class="ei">⚠️</div><div class="et">Could not load van stock</div></div>';
+    wrap.innerHTML='<div class="empty"><div class="ei">⚠️</div><div class="et">Could not load van stock.<br>Check Settings.</div></div>';
     return;
   }
   window._restockItems=items;
-  // Pre-fill suggested qty = std - curr (shortfall), 0 if fully stocked
+  window._restockVanIdx=vanIdx;
   window._restockQtys=items.map(i=>Math.max(0,i.std-i.curr));
   window._restockCat='All';
+  // Reset search
+  const srch=document.getElementById('restock-search');
+  if(srch)srch.value='';
   buildRestockChips(items);
   filterRestock();
-  // Summary bar
   updateRestockSummary(items);
 }
 
@@ -1661,15 +1664,20 @@ function filterRestock(){
 
 function updateRestockSummary(items){
   const bar=document.getElementById('restock-summary');
-  if(!bar) return;
+  if(!bar||!items) return;
   const ror=items.filter(i=>i.status==='ror').length;
   const low=items.filter(i=>i.status==='low').length;
   const full=items.filter(i=>i.status==='full').length;
-  document.getElementById('rst-sum-total').textContent=items.length+' parts total';
-  document.getElementById('rst-sum-ror').textContent=ror?'⚠ '+ror+' reorder':'';
-  document.getElementById('rst-sum-low').textContent=low?'▼ '+low+' low':'';
-  document.getElementById('rst-sum-full').textContent=full?'✓ '+full+' stocked':'';
-  bar.style.cssText='display:flex;padding:6px 14px;background:var(--bg2);border-bottom:1px solid rgba(255,255,255,.07);font-size:11px;color:var(--tx2);gap:12px;align-items:center;flex-shrink:0';
+  const totEl=document.getElementById('rst-sum-total');
+  const rorEl=document.getElementById('rst-sum-ror');
+  const lowEl=document.getElementById('rst-sum-low');
+  const fulEl=document.getElementById('rst-sum-full');
+  if(totEl)totEl.textContent=items.length+' parts total';
+  if(rorEl)rorEl.textContent=ror?'⚠ '+ror+' reorder':'';
+  if(lowEl)lowEl.textContent=low?'▼ '+low+' low':'';
+  if(fulEl)fulEl.textContent=full?'✓ '+full+' stocked':'';
+  bar.style.display='flex';
+  bar.style.flexShrink='0';
 }
 
 function renderRestockItems(filtered){
