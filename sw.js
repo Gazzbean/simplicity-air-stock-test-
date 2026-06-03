@@ -1,5 +1,5 @@
 // Bump cache version to force refresh on all devices
-const CACHE = 'sa-stock-v5';
+const CACHE = 'sa-stock-v6';
 const ASSETS = ['./index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
