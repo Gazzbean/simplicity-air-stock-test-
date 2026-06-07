@@ -1503,6 +1503,24 @@ async function loadLog(){
 // ═══════════════════════════════════════════════════════
 //  TOAST & BOOT
 // ═══════════════════════════════════════════════════════
+// ── Check for updates ────────────────────────────────────────────
+async function checkForUpdates(){
+  showToast('Checking for updates…','');
+  try{
+    if('serviceWorker' in navigator){
+      const reg = await navigator.serviceWorker.getRegistration();
+      if(reg){
+        await reg.update();
+        showToast('✓ Up to date — v9.0','ok');
+      }
+    }
+    // Also try fetching the sw.js to bust GitHub CDN cache
+    await fetch('./sw.js?t='+Date.now(), {cache:'no-store'});
+  }catch(e){
+    showToast('Could not check for updates','err');
+  }
+}
+
 let tT;
 function showToast(msg,type=''){
   const t=document.getElementById('toast');
@@ -1533,7 +1551,7 @@ function renderSettings(){
   } else {
     scroll.innerHTML=`
       <div style="padding:14px 14px 0">
-        <div class="info-b">⚙️ All settings saved on this device. API credentials are only visible to the manager.</div>
+        <div class="info-b">⚙️ All settings saved on this device. API credentials are only visible to the manager.<br><span style="font-size:10px;color:var(--tx3);font-family:monospace">App v9.0</span></div>
       </div>
       <div class="cfg-sec">
         <div class="cfg-title">Manager Password</div>
@@ -1589,6 +1607,7 @@ function renderSettings(){
         </div>
       </div>
       <button class="btn-save" onclick="saveCfg()">Save All Settings</button>
+      <button class="btn-save" style="background:var(--surf2);color:var(--tx2);margin-top:8px" onclick="checkForUpdates()">🔄 Check for Updates</button>
       <div style="height:20px"></div>`;
     setTimeout(()=>renderTechList(),50);
   }
@@ -1853,14 +1872,20 @@ window.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('mgr-name-input').value=last;
   }
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./sw.js').then(reg=>{
-      // Check for updates every time app loads
-      reg.update();
-      // When a new SW takes over, reload the page automatically
-      navigator.serviceWorker.addEventListener('controllerchange', ()=>{
-        window.location.reload();
-      });
-    }).catch(()=>{});
+    navigator.serviceWorker.register('./sw.js', {
+        updateViaCache: 'none'  // Never cache sw.js - always fetch fresh
+      }).then(reg=>{
+        // Force check for updates immediately on every load
+        reg.update();
+        // When new SW takes over — reload to get fresh app
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+          if(!refreshing){
+            refreshing = true;
+            window.location.reload();
+          }
+        });
+      }).catch(()=>{});
   }
 });
 </script>
