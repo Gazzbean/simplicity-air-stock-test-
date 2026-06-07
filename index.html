@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Simplicity Air">
 <meta name="theme-color" content="#0e1230">
 <link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/x-icon" href="favicon.ico">
 <title>Simplicity Air – Stock Control</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -18,7 +20,7 @@
   --bg:#0e1230;--bg2:#14193d;--bg3:#1a2050;--surf:#1e2658;--surf2:#252e68;
   --acc:#00aae6;--acc2:#0088c0;--grn:#00d97e;--amb:#ffb020;--red:#ff4444;--org:#ff6b35;
   --tx:#e8f0fe;--tx2:#8aa8c8;--tx3:#4d6080;
-  --r:14px;--rs:8px;--nav:64px;--hdr:56px;
+  --r:14px;--rs:8px;--nav:64px;--hdr:56px;--hdr-safe:calc(56px + env(safe-area-inset-top, 0px));
   font-family:'DM Sans',sans-serif;
 }
 html,body{height:100%;width:100%;background:var(--bg);color:var(--tx);overflow:hidden;-webkit-font-smoothing:antialiased}
@@ -27,7 +29,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--tx);overflow:h
 #app{height:100vh;display:flex;flex-direction:column;max-width:430px;margin:0 auto;position:relative}
 
 /* ══ LOGIN SCREENS ══ */
-.screen{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px 24px;transition:opacity .3s,transform .3s;max-width:430px;margin:0 auto}
+.screen{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(28px + env(safe-area-inset-top, 0px)) 24px calc(28px + env(safe-area-inset-bottom, 0px)) 24px;transition:opacity .3s,transform .3s;max-width:430px;margin:0 auto}
 .screen.out{opacity:0;transform:translateY(-16px);pointer-events:none}
 .screen.hidden{display:none}
 
@@ -79,7 +81,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--tx);overflow:h
 .btn-link:active{color:var(--acc)}
 
 /* ══ APP SHELL ══ */
-.hdr{height:var(--hdr);background:var(--bg2);border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0}
+.hdr{height:calc(var(--hdr) + env(safe-area-inset-top, 0px));padding-top:env(safe-area-inset-top, 0px);background:var(--bg2);border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0}
 .hdr-title{flex:1;font-size:16px;font-weight:700;letter-spacing:-.2px}
 .hdr-rego{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--org);color:#fff;font-family:'DM Mono',monospace;letter-spacing:.5px}
 .hdr-rego.mgr{background:var(--grn);color:var(--bg)}
@@ -92,8 +94,8 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--tx);overflow:h
 .page.on{display:flex;animation:fadeUp .22s ease}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
-.nav{height:var(--nav);background:var(--bg2);border-top:1px solid rgba(255,255,255,.07);display:flex;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom)}
-.ni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:transparent;color:var(--tx3);cursor:pointer;padding:8px 0;transition:color .15s;user-select:none}
+.nav{height:calc(var(--nav) + env(safe-area-inset-bottom, 0px));background:var(--bg2);border-top:1px solid rgba(255,255,255,.07);display:flex;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom, 0px);align-items:flex-start}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:transparent;color:var(--tx3);cursor:pointer;padding:8px 0;transition:color .15s;user-select:none;height:var(--nav)}
 .ni.on{color:var(--acc)}
 .ni-icon{font-size:22px;line-height:1}
 .ni-label{font-size:10px;font-weight:600;letter-spacing:.3px}
@@ -138,7 +140,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--tx);overflow:h
 .bsh-sub{font-size:11px;color:var(--tx2);font-family:'DM Mono',monospace;margin-top:2px}
 .bsh-body{flex:1;overflow-y:auto;padding:18px}
 .bsh-body::-webkit-scrollbar{display:none}
-.bsh-acts{padding:14px 18px;border-top:1px solid rgba(255,255,255,.07);display:flex;gap:8px;flex-shrink:0}
+.bsh-acts{padding:14px 18px calc(14px + env(safe-area-inset-bottom, 0px)) 18px;border-top:1px solid rgba(255,255,255,.07);display:flex;gap:8px;flex-shrink:0}
 .flabel{font-size:11px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px}
 .fg{margin-bottom:18px}
 .stepper{display:flex;align-items:center;gap:14px}
@@ -213,7 +215,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--tx);overflow:h
 .info-b{margin:10px 14px;padding:10px 12px;background:rgba(0,194,255,.07);border:1px solid rgba(0,194,255,.18);border-radius:var(--rs);font-size:12px;color:var(--tx2);line-height:1.5}
 
 /* ══ MISC ══ */
-.toast{position:fixed;bottom:calc(var(--nav) + 12px);left:50%;transform:translateX(-50%) translateY(14px);background:var(--surf2);color:var(--tx);padding:10px 18px;border-radius:var(--rs);font-size:13px;font-weight:500;border:1px solid var(--surf2);z-index:200;opacity:0;transition:all .28s;white-space:nowrap;pointer-events:none;max-width:calc(100vw - 32px)}
+.toast{position:fixed;bottom:calc(var(--nav) + env(safe-area-inset-bottom, 0px) + 12px);left:50%;transform:translateX(-50%) translateY(14px);background:var(--surf2);color:var(--tx);padding:10px 18px;border-radius:var(--rs);font-size:13px;font-weight:500;border:1px solid var(--surf2);z-index:200;opacity:0;transition:all .28s;white-space:nowrap;pointer-events:none;max-width:calc(100vw - 32px)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.ok{border-color:var(--grn)}.toast.err{border-color:var(--red)}
 .empty{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;padding:32px}
@@ -324,7 +326,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--tx);overflow:h
     <div class="pin-key" onclick="pinKey('0')">0</div>
     <div class="pin-key del" onclick="pinDel()">⌫</div>
   </div>
-  <button class="btn-link" id="pin-back-btn" onclick="showScreen('scr-tech-info')" style="margin-top:20px">← Back</button>
+  <button class="btn-link" id="pin-back-btn" onclick="showScreen('scr-tech-info')" style="margin-top:20px;margin-bottom:env(safe-area-inset-bottom, 0px)">← Back</button>
 </div>
 
 <!-- ══════════════════════════════════════════
@@ -404,7 +406,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--tx);overflow:h
   </div>
 
   <div class="page" id="pg-log">
-    <div class="scroll" style="flex:1;padding:14px">
+    <div class="scroll" style="flex:1;padding:14px 14px calc(var(--nav) + env(safe-area-inset-bottom, 20px)) 14px">
       <div class="info-b">Usage history is stored in your Google Sheet — <strong>Usage Log</strong> tab.</div>
       <div id="log-items"></div>
     </div>
@@ -412,7 +414,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--tx);overflow:h
 
   <!-- ── TECH SETTINGS (PIN change only) ── -->
   <div class="page" id="pg-settings">
-    <div class="scroll" style="flex:1" id="settings-scroll">
+    <div class="scroll" style="flex:1;padding-bottom:calc(var(--nav) + env(safe-area-inset-bottom, 16px))" id="settings-scroll">
       <!-- content injected by renderSettings() -->
     </div>
   </div>
@@ -440,7 +442,7 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--tx);overflow:h
     <div class="scroll" style="flex:1;padding:12px 14px 0" id="restock-items">
       <div class="empty"><div class="spin"></div><div class="et">Loading…</div></div>
     </div>
-    <div style="padding:12px 14px;border-top:1px solid rgba(255,255,255,.07);flex-shrink:0">
+    <div style="padding:12px 14px calc(12px + env(safe-area-inset-bottom, 0px)) 14px;border-top:1px solid rgba(255,255,255,.07);flex-shrink:0">
       <button class="btn-save" id="restock-confirm-btn" style="display:none" onclick="submitRestockAll()">✓ Confirm Restock</button>
     </div>
   </div>
