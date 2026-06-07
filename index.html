@@ -271,7 +271,8 @@ html,body{height:100%;width:100%;background:var(--bg);color:var(--tx);overflow:h
     </div>
     <div class="lf">
       <label class="lf-label">Your name</label>
-      <input type="text" id="tech-name-input" placeholder="e.g. Jake" autocomplete="name">
+      <input type="text" id="tech-name-input" placeholder="e.g. Jake" autocomplete="name" list="tech-names-list">
+      <datalist id="tech-names-list"></datalist>
     </div>
   </div>
   <button class="btn-go" onclick="goToTechPin()" style="max-width:340px;margin-top:4px">Next →</button>
@@ -602,6 +603,20 @@ async function saveCfg(){
   const v2=val('c-v2');  if(v2!==null) A.cfg.v2=v2.toUpperCase();
   const v3=val('c-v3');  if(v3!==null) A.cfg.v3=v3.toUpperCase();
   const v4=val('c-v4');  if(v4!==null) A.cfg.v4=v4.toUpperCase();
+  // Write synced settings to Google Sheet — van regos and tech names
+  // All devices pick these up automatically on next login
+  if(A.cfg.scriptUrl){
+    // Van regos — rows 4-7
+    const regos=[[A.cfg.v1||''],[A.cfg.v2||''],[A.cfg.v3||''],[A.cfg.v4||'']];
+    writeSheet('update',"'App Settings'!B4:B7", regos).catch(()=>{});
+    // Tech names — rows 10-14
+    const techEl=['c-t1','c-t2','c-t3','c-t4','c-t5'];
+    const techNames=techEl.map(id=>{
+      const el=document.getElementById(id);
+      return [el?el.value.trim():''];
+    });
+    writeSheet('update',"'App Settings'!B10:B14", techNames).catch(()=>{});
+  }
   const sid=val('c-sid');      if(sid!==null)       A.cfg.sheetId=sid;
   const akey=val('c-akey');    if(akey!==null)      A.cfg.apiKey=akey;
   const scr=val('c-scr');      if(scr!==null)       A.cfg.scriptUrl=scr;
@@ -817,6 +832,9 @@ function launchApp(){
   document.getElementById('content').style.display='flex';
   document.getElementById('nav').style.display='flex';
   buildNav();
+  // Load shared settings from Google Sheet (van regos, tech names)
+  // This syncs across all devices — non-blocking, uses cached values if offline
+  loadAppSettings().catch(()=>{});
   if(A.role==='tech')navTo('stock');
   else navTo('dash');
 }
@@ -898,6 +916,35 @@ const DEMO=[
   ['AF-14ACR21G','Copper Coil 1/4" 6.4mm x 30m','Tube','BIN-34',1,1,0,'✓ FULL'],
   ['B4430315','Cable Ties 100x2.5mm Black 500pk','Hardware','BIN-42',1,1,0,'✓ FULL'],
 ];
+
+// ── Load app settings from Google Sheet ──────────────────────────
+async function loadAppSettings(){
+  // Read App Settings tab — A4:B17 covers all synced settings
+  const rows = await fetchSheet("'App Settings'!A4:B17");
+  if(!rows||!rows.length) return; // keep cached values if offline
+  const map = {};
+  rows.forEach(r=>{ if(r[0]&&r[1]) map[r[0].trim()]=r[1].trim(); });
+  // Van regos (rows 4-7 in sheet = index 0-3 in A4:B17)
+  if(map['Van1Rego']) A.cfg.v1 = map['Van1Rego'];
+  if(map['Van2Rego']) A.cfg.v2 = map['Van2Rego'];
+  if(map['Van3Rego']) A.cfg.v3 = map['Van3Rego'];
+  if(map['Van4Rego']) A.cfg.v4 = map['Van4Rego'];
+  // Technician names (rows 10-14)
+  if(map['Tech1Name']) A.cfg.tech1 = map['Tech1Name'];
+  if(map['Tech2Name']) A.cfg.tech2 = map['Tech2Name'];
+  if(map['Tech3Name']) A.cfg.tech3 = map['Tech3Name'];
+  if(map['Tech4Name']) A.cfg.tech4 = map['Tech4Name'];
+  if(map['Tech5Name']) A.cfg.tech5 = map['Tech5Name'];
+  A.cfg.techNames = [1,2,3,4,5]
+    .map(i=>map['Tech'+i+'Name']||'')
+    .filter(Boolean);
+  // Company name (row 17)
+  if(map['CompanyName']) A.cfg.companyName = map['CompanyName'];
+  // Persist locally for offline use
+  localStorage.setItem('sa_cfg', JSON.stringify(A.cfg));
+  // Refresh van selector with latest regos
+  buildVanSelector();
+}
 
 async function fetchSheet(range){
   const{sheetId,apiKey}=A.cfg;
