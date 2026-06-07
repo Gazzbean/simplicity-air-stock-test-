@@ -1,31 +1,43 @@
-// Bump cache version to force refresh on all devices
-const CACHE = 'sa-stock-v6';
-const ASSETS = ['./index.html', './manifest.json'];
+// ═══════════════════════════════════════════════════════
+//  Service Worker v8 — Aggressive update strategy
+//  Never serves stale content — always network first
+// ═══════════════════════════════════════════════════════
+const CACHE = 'sa-stock-v8';
 
+// On install — skip waiting immediately so new SW takes over right away
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
   self.skipWaiting();
 });
 
+// On activate — claim all clients immediately, delete ALL old caches
 self.addEventListener('activate', e => {
-  // Delete ALL old caches immediately
   e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.map(k => {
-        if(k !== CACHE) {
-          console.log('Deleting old cache:', k);
-          return caches.delete(k);
-        }
-      }))
-    )
+    caches.keys()
+      .then(keys => Promise.all(keys.map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
+      .then(() => {
+        // Tell all open tabs to reload so they get fresh content
+        return self.clients.matchAll({ type: 'window' });
+      })
+      .then(clients => {
+        clients.forEach(client => {
+          client.navigate(client.url);
+        });
+      })
   );
-  self.clients.claim();
 });
 
+// Fetch strategy — ALWAYS go to network, never serve from cache
+// This ensures Android always gets the latest version
 self.addEventListener('fetch', e => {
-  // Network first — always try to get fresh content
-  // Only fall back to cache if offline
+  // Only handle same-origin requests
+  if (!e.request.url.startsWith(self.location.origin)) return;
+
   e.respondWith(
-    fetch(e.request).catch(() => caches.match(e.request))
+    fetch(e.request, { cache: 'no-store' })
+      .catch(() => {
+        // Only fall back to cache when truly offline
+        return caches.match(e.request);
+      })
   );
 });
