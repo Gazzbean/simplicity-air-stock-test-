@@ -865,6 +865,7 @@ function navTo(p){
   A.page=p;
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('on'));
   document.getElementById('pg-'+p)?.classList.add('on');
+  buildNav();
   const titles={stock:A.vanRego?`${A.vanRego} Stock`:'Van Stock',dash:'Dashboard',reorder:'Reorder Required',restock:'Van Restock',levels:'Stock Levels',log:'Usage Log',settings:A.role==='mgr'?'Settings':'My PIN'};
   updateHeader(titles[p]||p);
   if(p==='stock')loadStock();
@@ -1478,15 +1479,19 @@ async function loadLog(){
   const w=document.getElementById('log-items');
   w.innerHTML='<div class="empty"><div class="spin"></div></div>';
   // Read a large range to capture all entries regardless of where appendRow put them
-  const rows=await fetchSheet("'Usage Log'!A3:O3000");
-  // Filter to only rows with actual data (date in col A)
+  // Entries are inserted newest-first at row 3, so first 50 rows = 50 most recent
+  const rows=await fetchSheet("'Usage Log'!A3:O52");
   const validRows = rows ? rows.filter(r=>r[0]&&String(r[0]).trim()!==''&&r[0]!=='Date') : [];
   if(!validRows.length){
     w.innerHTML='<div class="empty"><div class="ei">📋</div><div class="et">No entries yet.<br>Log a part from the Stock tab.</div></div>';
     return;
   }
   // Show most recent 20 entries (last in sheet = most recent)
-  w.innerHTML=validRows.slice(-20).reverse().map(r=>{
+  // For tech view — filter to their van only
+  const displayRows = A.role==='tech' && A.vanRego
+    ? validRows.filter(r=>r[1]===A.vanRego||r[1]===('Van '+A.vanIdx))
+    : validRows;
+  w.innerHTML=displayRows.slice(-20).reverse().map(r=>{
     const qty=r[7]||1, unit=r[8]||'ea';
     const qtyLabel=(unit==='ea'||unit==='kit')?`${qty}×`:`${qty} ${unit}`;
     const packSt=r[13]&&r[13]!=='N/A'?` · ${r[13]}`:'';
