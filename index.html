@@ -1923,21 +1923,12 @@ window.addEventListener('DOMContentLoaded',()=>{
     document.getElementById('tech-name-input').value=last;
     document.getElementById('mgr-name-input').value=last;
   }
+  // Unregister any previously installed service workers
+  // App requires internet for Google Sheets so offline caching is not needed
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./sw.js', {
-        updateViaCache: 'none'  // Never cache sw.js - always fetch fresh
-      }).then(reg=>{
-        // Force check for updates immediately on every load
-        reg.update();
-        // When new SW takes over — reload to get fresh app
-        let refreshing = false;
-        navigator.serviceWorker.addEventListener('controllerchange', ()=>{
-          if(!refreshing){
-            refreshing = true;
-            window.location.reload();
-          }
-        });
-      }).catch(()=>{});
+    navigator.serviceWorker.getRegistrations().then(regs=>{
+      regs.forEach(r=>r.unregister());
+    });
   }
 });
 </script>
