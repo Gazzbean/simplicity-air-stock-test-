@@ -1196,12 +1196,10 @@ const ITEM_TYPES = {
   'AF-AA5M':          {type:'container', unit:'tube',   label:'Used from tube'},
   'AF-P7424':         {type:'container', unit:'stick',  label:'Sticks used'},
   'AF-EF4516':        {type:'container', unit:'stick',  label:'Sticks used'},
-  // Brazing gases — whole cylinder/cartridge but log qty used for billing
-  // Nitrogen: log cubic metres or whole cylinder (partial purging use)
-  'A2800074':         {type:'container', unit:'cylinder', label:'Cylinders used'},
-  // Oxygen & MAPP — small cartridges, typically used whole per job
-  'AF-1811322':       {type:'container', unit:'cylinder', label:'Cylinders used'},
-  'AF-MAPP':          {type:'container', unit:'cartridge',label:'Cartridges used'},
+  // Brazing gases — whole discrete units, always fully used per transaction
+  'A2800074':         {type:'ea', unit:'ea', label:'Cylinders used'},
+  'AF-1811322':       {type:'ea', unit:'ea', label:'Cylinders used'},
+  'AF-MAPP':          {type:'ea', unit:'ea', label:'Cartridges used'},
   // Solder rods — log sticks used (whole sticks, typically 1-3 per joint)
   // Already covered above as stick type
   // Heatshrink — sold as 1.2m lengths, log whole lengths used
@@ -1266,7 +1264,9 @@ function openSheet(item){
     } else {
       packHint.style.display='none';
     }
-    setPackStatus('have');
+    // Auto-select 'done' if suggested qty = all remaining stock
+    const suggested = it.min || 1;
+    setPackStatus(suggested >= item.curr ? 'done' : 'have');
   } else {
     document.getElementById('ui-ea').style.display='block';
     document.getElementById('lbl-ea').textContent=it.label;
