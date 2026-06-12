@@ -1419,10 +1419,10 @@ async function confirmUsage(){
       }
       // Decrement stock count col F when needed
       if(decrementStock){
-        const updateResult = await writeSheet('update',`'Van ${A.vanIdx} Stock'!F${sheetRow}`,[[newStockCount]]);
-        A.stock[rowIdx].curr=newStockCount;
-        A.stock[rowIdx].status=newStockCount===0?'ror':newStockCount<item.std?'low':'full';
-      } else {
+        const safeQty = Number.isFinite(newStockCount) ? newStockCount : 0;
+        await writeSheet('update',`'Van ${A.vanIdx} Stock'!F${sheetRow}`,[[safeQty]]);
+        A.stock[rowIdx].curr=safeQty;
+        A.stock[rowIdx].status=safeQty===0?'ror':safeQty<item.std?'low':'full';
       }
     } else {
     }
@@ -1611,7 +1611,7 @@ function renderSettings(){
   } else {
     scroll.innerHTML=`
       <div style="padding:14px 14px 0">
-        <div class="info-b">⚙️ All settings saved on this device. API credentials are only visible to the manager.<br><span style="font-size:10px;color:var(--tx3);font-family:monospace">App v9.0</span></div>
+        <div class="info-b">⚙️ All settings saved on this device. API credentials are only visible to the manager.<br><span style="font-size:10px;color:var(--tx3);font-family:monospace">App v9.1 · Script v6</span></div>
       </div>
       <div class="cfg-sec">
         <div class="cfg-title">Manager Password</div>
