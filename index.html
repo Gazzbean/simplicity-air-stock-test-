@@ -1679,6 +1679,10 @@ function renderSettings(){
 function initRestock(){
   const sel=document.getElementById('restock-van-sel');
   sel.innerHTML='';
+  // All vans option
+  const allOpt=document.createElement('option');
+  allOpt.value='all';allOpt.textContent='All Vans';
+  sel.appendChild(allOpt);
   for(let i=1;i<=4;i++){
     const opt=document.createElement('option');
     opt.value=i;opt.textContent=getVanRego(i)+' (Van '+i+')';
@@ -1688,21 +1692,49 @@ function initRestock(){
 }
 
 async function loadRestockItems(){
-  const vanIdx=window._restockVanIdx||document.getElementById('restock-van-sel').value;
+  const vanIdx=document.getElementById('restock-van-sel').value;
   const wrap=document.getElementById('restock-items');
   wrap.innerHTML='<div class="empty"><div class="spin"></div><div class="et">Loading…</div></div>';
-  const rows=await fetchSheet(`'Van ${vanIdx} Stock'!A4:H100`);
-  // Fall back to DEMO if fetch fails (same as tech stock list)
-  const items=parseRows(rows||DEMO);
+
+  let items=[];
+  if(vanIdx==='all'){
+    // Load all 4 vans and merge — flag each item with van source
+    // For 'all vans' view, show only items needing attention across all vans
+    const allItems=[];
+    for(let v=1;v<=4;v++){
+      const rows=await fetchSheet(`'Van ${v} Stock'!A4:H100`);
+      const vItems=parseRows(rows||[]);
+      vItems.forEach(i=>{
+        // Check if this pn already added — merge vans needing same part
+        const existing=allItems.find(x=>x.pn===i.pn&&(i.status==='ror'||i.status==='low'));
+        if(existing){
+          existing.vanLabel+=' + '+getVanRego(v);
+        } else if(i.status==='ror'||i.status==='low'){
+          allItems.push({...i, vanLabel:getVanRego(v), vanIdx:v});
+        }
+      });
+    }
+    items=allItems;
+  } else {
+    const rows=await fetchSheet(`'Van ${vanIdx} Stock'!A4:H100`);
+    items=parseRows(rows||DEMO);
+  }
+
   if(!items.length){
-    wrap.innerHTML='<div class="empty"><div class="ei">⚠️</div><div class="et">Could not load van stock.<br>Check Settings.</div></div>';
+    wrap.innerHTML='<div class="empty"><div class="ei">✅</div><div class="et">All stock levels OK.<br>Nothing needs restocking.</div></div>';
+    // Still set up empty state
+    window._restockItems=[];
+    window._restockVanIdx=vanIdx;
+    window._restockQtys=[];
+    buildRestockChips([]);
+    updateRestockSummary([]);
     return;
   }
+
   window._restockItems=items;
   window._restockVanIdx=vanIdx;
-  window._restockQtys=items.map(i=>Math.max(0,i.std-i.curr));
+  window._restockQtys=items.map(i=>Math.max(0,(i.std||0)-(i.curr||0)));
   window._restockCat='All';
-  // Reset search
   const srch=document.getElementById('restock-search');
   if(srch)srch.value='';
   buildRestockChips(items);
@@ -1794,6 +1826,7 @@ function renderRestockItems(filtered){
           <span style="color:${stCol};font-weight:700">${stIcon}${item.status==='ror'?'REORDER':item.status==='low'?'LOW':'FULL'}</span>
           <span style="color:var(--tx2)">Current: <strong style="color:${stCol}">${item.curr}</strong> / Std: ${item.std}</span>
           <span style="color:var(--tx3)">${item.bin}</span>
+          ${item.vanLabel?`<span style="color:var(--acc);font-weight:600">${item.vanLabel}</span>`:''}
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
@@ -1825,6 +1858,7 @@ function adjRestock(i,d){
 
 async function submitRestockAll(){
   const vanIdx=document.getElementById('restock-van-sel').value;
+  if(vanIdx==='all'){showToast('Select a specific van to confirm restock','err');return;}
   const vanRego=getVanRego(vanIdx);
   const qtys=window._restockQtys||[];
   const items=window._restockItems||[];
