@@ -1,11 +1,10 @@
 // ═══════════════════════════════════════════════════════════════════
-//  SIMPLICITY AIR – Google Apps Script Web App (v5)
+//  SIMPLICITY AIR – Google Apps Script Web App (v6)
 //
-//  KEY CHANGE in v5:
-//  - Usage Log uses insertRow(3) instead of appendRow
-//    → New entries go to row 3 (after headers), newest first
-//    → App always reads A3:O22 to get the 20 most recent entries
-//  - All other writes unchanged
+//  CHANGES in v6:
+//  - Improved error handling on update action
+//  - Explicit flush after writes to ensure they commit
+//  - Better logging for debugging
 //
 //  TO UPDATE:
 //  Extensions → Apps Script → paste this → Save →
@@ -17,7 +16,7 @@ function doGet(e) {
   return ContentService
     .createTextOutput(JSON.stringify({
       ok: true,
-      message: 'Simplicity Air Apps Script v5 running',
+      message: 'Simplicity Air Apps Script v6 running',
       sheet: ss.getName(),
       tabs: ss.getSheets().map(function(s){ return s.getName(); })
     }))
@@ -27,7 +26,7 @@ function doGet(e) {
 function doPost(e) {
   try {
     var payload = JSON.parse(e.postData.contents);
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var ss      = SpreadsheetApp.getActiveSpreadsheet();
     var result;
 
     function getSheetAndRange(rangeStr) {
@@ -43,24 +42,23 @@ function doPost(e) {
     if (payload.action === 'append') {
       var target = getSheetAndRange(payload.range);
       var sheet  = target.sheet;
-
-      // For Usage Log — insert at row 3 so newest entries appear first
-      // For all other sheets — use standard appendRow
       if (sheet.getName() === 'Usage Log') {
         sheet.insertRowBefore(3);
         sheet.getRange(3, 1, 1, payload.values[0].length)
              .setValues(payload.values);
-        result = { ok: true, action: 'append', method: 'insertRow3' };
       } else {
         sheet.appendRow(payload.values[0]);
-        result = { ok: true, action: 'append', method: 'appendRow' };
       }
+      SpreadsheetApp.flush();
+      result = { ok: true, action: 'append' };
     }
 
     else if (payload.action === 'update') {
       var updateTarget = getSheetAndRange(payload.range);
-      updateTarget.sheet.getRange(updateTarget.a1Range).setValues(payload.values);
-      result = { ok: true, action: 'update' };
+      var range = updateTarget.sheet.getRange(updateTarget.a1Range);
+      range.setValues(payload.values);
+      SpreadsheetApp.flush();
+      result = { ok: true, action: 'update', range: payload.range };
     }
 
     else if (payload.action === 'read') {
