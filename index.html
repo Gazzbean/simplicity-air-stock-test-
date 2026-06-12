@@ -27,7 +27,7 @@
 html,body{height:100%;width:100%;max-height:100%;background:var(--bg);color:var(--tx);overflow:hidden;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
 .scroll{overflow-y:auto;-webkit-overflow-scrolling:touch}
 .scroll::-webkit-scrollbar{display:none}
-#app{height:100vh;display:flex;flex-direction:column;max-width:430px;margin:0 auto;position:relative;overflow:hidden}
+#app{height:100vh;height:100dvh;display:flex;flex-direction:column;max-width:430px;margin:0 auto;position:relative;overflow:hidden}
 
 /* ══ LOGIN SCREENS ══ */
 .screen{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(28px + env(safe-area-inset-top, 0px)) 24px calc(28px + env(safe-area-inset-bottom, 0px)) 24px;transition:opacity .3s,transform .3s;max-width:430px;margin:0 auto}
@@ -82,7 +82,7 @@ html,body{height:100%;width:100%;max-height:100%;background:var(--bg);color:var(
 .btn-link:active{color:var(--acc)}
 
 /* ══ APP SHELL ══ */
-.hdr{height:calc(var(--hdr) + env(safe-area-inset-top, 0px));padding-top:env(safe-area-inset-top, 0px);background:var(--bg2);border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0}
+.hdr{height:calc(var(--hdr) + env(safe-area-inset-top,0px));background:var(--bg2);border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;padding:env(safe-area-inset-top,0px) 16px 0 16px;gap:10px;flex-shrink:0}
 .hdr-title{flex:1;font-size:16px;font-weight:700;letter-spacing:-.2px}
 .hdr-rego{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--org);color:#fff;font-family:'DM Mono',monospace;letter-spacing:.5px}
 .hdr-rego.mgr{background:var(--grn);color:var(--bg)}
@@ -94,10 +94,16 @@ html,body{height:100%;width:100%;max-height:100%;background:var(--bg);color:var(
 .page{display:none;flex:1;flex-direction:column;overflow:hidden}
 .page.on{display:flex;animation:fadeUp .22s ease}
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(orientation:landscape) and (max-height:500px){
+  :root{--nav:48px;--hdr:44px}
+  .ni-icon{font-size:16px}
+  .ni-label{font-size:9px}
+  .ni{min-height:48px}
+}
 
-.nav{height:calc(var(--nav) + env(safe-area-inset-bottom, 0px));background:var(--bg2);border-top:1px solid rgba(255,255,255,.07);display:flex;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom, 0px);align-items:stretch}
-.ni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:transparent;color:var(--tx3);cursor:pointer;padding:8px 0 calc(8px + env(safe-area-inset-bottom, 0px));transition:color .15s;user-select:none;-webkit-user-select:none;min-height:var(--nav);box-sizing:border-box}
-.ni.on{color:var(--acc)}
+.nav{background:var(--bg2);border-top:1px solid rgba(255,255,255,.07);display:flex;flex-direction:row;flex-shrink:0;width:100%;padding-bottom:env(safe-area-inset-bottom,0px)}
+.ni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:transparent;color:var(--tx3);cursor:pointer;padding:8px 4px;transition:color .15s;user-select:none;-webkit-user-select:none;min-height:var(--nav);box-sizing:border-box}
+.nav-inner{display:flex;width:100%;height:var(--nav)}.nav-safe{width:100%;height:env(safe-area-inset-bottom,0px);background:var(--bg2)}.ni.on{color:var(--acc)}
 .ni-icon{font-size:22px;line-height:1;display:block}
 .ni-label{font-size:10px;font-weight:600;letter-spacing:.3px;display:block}
 
@@ -263,16 +269,16 @@ html,body{height:100%;width:100%;max-height:100%;background:var(--bg);color:var(
   <img src="data:image/jpeg;base64,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"
     alt="Simplicity Air" style="height:28px;margin-bottom:14px;border-radius:2px">
   <div class="app-name" style="font-size:20px;margin-bottom:3px">Technician Login</div>
-  <div class="app-sub" style="margin-bottom:24px">Select your van and enter your name</div>
+  <div class="app-sub" style="margin-bottom:24px">Enter your name and select your van</div>
   <div class="login-form">
-    <div class="lf">
-      <label class="lf-label">Your van</label>
-      <select id="van-sel"></select>
-    </div>
     <div class="lf">
       <label class="lf-label">Your name</label>
       <input type="text" id="tech-name-input" placeholder="e.g. Jake" autocomplete="name" list="tech-names-list">
       <datalist id="tech-names-list"></datalist>
+    </div>
+    <div class="lf">
+      <label class="lf-label">Your van</label>
+      <select id="van-sel"></select>
     </div>
   </div>
   <button class="btn-go" onclick="goToTechPin()" style="max-width:340px;margin-top:4px">Next →</button>
@@ -871,12 +877,15 @@ const MGR_NAV=[{id:'dash',icon:'📊',label:'Dashboard'},{id:'reorder',icon:'�
 
 function buildNav(){
   const items=A.role==='tech'?TECH_NAV:MGR_NAV;
-  document.getElementById('nav').innerHTML=items.map(n=>
-    `<button class="ni ${n.id===A.page?'on':''}" onclick="navTo('${n.id}')">
-      <span class="ni-icon">${n.icon}</span>
-      <span class="ni-label">${n.label}</span>
-    </button>`
-  ).join('');
+  document.getElementById('nav').innerHTML=
+    '<div class="nav-inner">' +
+    items.map(n=>
+      `<button class="ni ${n.id===A.page?'on':''}" onclick="navTo('${n.id}')">
+        <span class="ni-icon">${n.icon}</span>
+        <span class="ni-label">${n.label}</span>
+      </button>`
+    ).join('') +
+    '</div><div class="nav-safe"></div>';
 }
 
 function navTo(p){
