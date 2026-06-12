@@ -1382,7 +1382,7 @@ async function confirmUsage(){
     logQty=parseFloat(document.getElementById('pack-input').value)||1;
     logUnit=it.unit;
     decrementStock=(_packStatus==='done');
-    if(decrementStock) newStockCount=Math.max(0,item.curr-1);
+    if(decrementStock) newStockCount=Math.max(0,item.curr-logQty);
   } else {
     logQty=A.qty;
     logUnit='ea';
