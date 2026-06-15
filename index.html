@@ -1406,8 +1406,9 @@ async function confirmUsage(){
     const packStatusVal = (it.type==='pack'||it.type==='container')
       ? (_packStatus==='done'?'Pack/container finished':'Still have stock')
       : 'N/A';
-    const appendResult = await writeSheet('append',"'Usage Log'!A:O",
-      [[dateStr,vanLabel,A.techName,jobNum,'',item.pn,logDesc,logQty,logUnit,'','','Yes','',packStatusVal,notes]]);
+    const txType='STOCK OUT';
+    const appendResult = await writeSheet('append',"'Usage Log'!A:P",
+      [[dateStr,txType,vanLabel,A.techName,jobNum,'',item.pn,logDesc,logQty,logUnit,'','','Yes','',packStatusVal,notes]]);
 
     const rowIdx=A.stock.findIndex(i=>i.pn===item.pn);
     if(rowIdx>=0){
@@ -1535,7 +1536,7 @@ async function loadLog(){
   w.innerHTML='<div class="empty"><div class="spin"></div></div>';
   // Read a large range to capture all entries regardless of where appendRow put them
   // Entries are inserted newest-first at row 3, so first 50 rows = 50 most recent
-  const rows=await fetchSheet("'Usage Log'!A3:O52");
+  const rows=await fetchSheet("'Usage Log'!A3:P52");
   const validRows = rows ? rows.filter(r=>r[0]&&String(r[0]).trim()!==''&&r[0]!=='Date') : [];
   if(!validRows.length){
     w.innerHTML='<div class="empty"><div class="ei">📋</div><div class="et">No entries yet.<br>Log a part from the Stock tab.</div></div>';
@@ -1544,31 +1545,31 @@ async function loadLog(){
   // Show most recent 20 entries (last in sheet = most recent)
   // For tech view — filter to their van only
   const displayRows = A.role==='tech' && A.vanRego
-    ? validRows.filter(r=>r[1]===A.vanRego||r[1]===('Van '+A.vanIdx))
+    ? validRows.filter(r=>r[2]===A.vanRego||r[2]===('Van '+A.vanIdx))
     : validRows;
   w.innerHTML=displayRows.slice(-20).reverse().map(r=>{
-    const qty=r[7]||1, unit=r[8]||'ea';
-    const isRestock=String(r[3]||'').includes('WORKSHOP RESTOCK');
+    // Col indices: r[0]=Date r[1]=TxType r[2]=Van r[3]=Tech r[4]=Job
+    // r[5]=Client r[6]=PartNo r[7]=Desc r[8]=Qty r[9]=Unit r[14]=PackStatus
+    const qty=r[8]||1, unit=r[9]||'ea';
+    const txType=r[1]||'STOCK OUT';
+    const isRestock=txType==='RESTOCK IN';
     const qtyLabel=(unit==='ea'||unit==='kit')?`${qty}×`:`${qty} ${unit}`;
-    const packSt=r[13]&&r[13]!=='N/A'?` · ${r[13]}`:'';
-    // Stock IN (restock) = green ▲, Stock OUT (usage) = red ▼
+    const packSt=r[14]&&r[14]!=='N/A'?` · ${r[14]}`:'';
     const arrow=isRestock?'▲':'▼';
     const qtyCol=isRestock?'var(--grn)':'var(--red)';
     const bgCol=isRestock?'rgba(0,217,126,.05)':'rgba(255,68,68,.04)';
     const bdCol=isRestock?'rgba(0,217,126,.15)':'rgba(255,68,68,.12)';
-    const typeLabel=isRestock?'RESTOCK IN':'STOCK OUT';
-    const typeLabelCol=isRestock?'var(--grn)':'var(--red)';
     return `<div style="background:${bgCol};border:1px solid ${bdCol};border-radius:var(--rs);padding:10px 12px;margin-bottom:7px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <span style="font-size:13px;font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r[6]||r[5]||'—'}</span>
+        <span style="font-size:13px;font-weight:600;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r[7]||r[6]||'—'}</span>
         <span style="font-size:13px;font-weight:700;font-family:'DM Mono',monospace;color:${qtyCol};margin-left:8px;flex-shrink:0">${arrow} ${qtyLabel}</span>
       </div>
       <div style="display:flex;gap:6px;align-items:center;margin-bottom:3px">
-        <span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:6px;background:${qtyCol};color:#fff;opacity:.9">${typeLabel}</span>
-        <span style="font-size:10px;color:var(--tx2);font-family:'DM Mono',monospace">${r[5]||''}</span>
-        <span style="font-size:10px;color:var(--tx3)">· Job: ${r[3]||'—'}${packSt}</span>
+        <span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:6px;background:${qtyCol};color:#fff;opacity:.9">${txType}</span>
+        <span style="font-size:10px;color:var(--tx2);font-family:'DM Mono',monospace">${r[6]||''}</span>
+        <span style="font-size:10px;color:var(--tx3)">· Job: ${r[4]||'—'}${packSt}</span>
       </div>
-      <div style="font-size:10px;color:var(--tx3)">${r[0]||''} · <strong style="color:var(--tx2)">${r[1]||''}</strong> · ${r[2]||''}</div>
+      <div style="font-size:10px;color:var(--tx3)">${r[0]||''} · <strong style="color:var(--tx2)">${r[2]||''}</strong> · ${r[3]||''}</div>
     </div>`;}).join('');
 }
 
